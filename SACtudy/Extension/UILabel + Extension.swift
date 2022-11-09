@@ -9,12 +9,12 @@ import UIKit
 
 extension UILabel {
     
-    func applyAppearnce(font: FontSet, color: UIColor) {
+    func applyAppearnce(text: String, font: FontSet, color: UIColor) {
         
-        var attr = AttributedString()
+        var attr = AttributedString(stringLiteral: text)
         attr.applyFontSet(font)
         attr.foregroundColor = color
-        
+
         attributedText = NSAttributedString(attr)
         
     }
@@ -39,10 +39,11 @@ extension UILabel {
         
     }
     
-    convenience init(text: String, font: FontSet, color: UIColor = Asset.Colors.black.color) {
+    convenience init(text: String = " ", font: FontSet, color: UIColor = Asset.Colors.black.color) {
         self.init()
-        applyAppearnce(font: font, color: color)
-        self.text = text
+        applyAppearnce(text: text, font: font, color: color)
+//        self.text = text
+        
     }
     
     
