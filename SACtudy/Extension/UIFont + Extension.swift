@@ -78,8 +78,10 @@ extension UIFont {
         let lineHeight = fontSize * ratio
         style.minimumLineHeight = lineHeight
         style.maximumLineHeight = lineHeight
+        style.alignment = .center
+        style.lineBreakMode = .byCharWrapping
         
-        return FontSet(font: self, paragraph: style, baselineOffset: (lineHeight - fontSize) / 4)
+        return FontSet(font: self, paragraph: style, baselineOffset: (lineHeight - self.lineHeight) / 4)
     }
     
 }
