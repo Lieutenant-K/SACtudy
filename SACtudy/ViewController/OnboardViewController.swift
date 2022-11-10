@@ -51,6 +51,10 @@ class OnboardViewController: UIViewController {
                 if index == items.count - 1 {
                     let font = FontFamily.NotoSansKR.medium.font(size: 24)
                     cell.titleLabel.changeAttributes(string: item.title, font: font, color: Asset.Colors.black.color)
+                    cell.titleLabel.snp.remakeConstraints { make in
+                        make.top.equalTo(16)
+                        make.centerX.equalToSuperview()
+                    }
                     
                 }
                 

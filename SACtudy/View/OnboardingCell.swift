@@ -12,11 +12,7 @@ import Then
 class OnboardingCell: UICollectionViewCell {
     
     let imageView = UIImageView()
-    let titleLabel = UILabel(font: FontFamily.NotoSansKR.regular.font(size: 24).createFontSet(ratio: 1.6)).then {
-        
-        $0.numberOfLines = 0
-        $0.textAlignment = .center
-    }
+    let titleLabel = UILabel()
     
     func configureCell() {
         
@@ -27,6 +23,7 @@ class OnboardingCell: UICollectionViewCell {
         }
         
         contentView.addSubview(titleLabel)
+        titleLabel.numberOfLines = 0
         titleLabel.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.centerX.equalToSuperview()
@@ -38,15 +35,17 @@ class OnboardingCell: UICollectionViewCell {
     
     func inputData(data: OnboardViewController.OnboardItem) {
         
-        titleLabel.text = data.title
+        let originFont = FontFamily.NotoSansKR.regular.font(size: 24).createFontSet(ratio: 1.6)
+        
+        titleLabel.attributedText = NSAttributedString(text: data.title, font: originFont, color: Asset.Colors.black.color)
         imageView.image = data.image
         
         if let string = data.highlightString {
             
-            let font = FontFamily.NotoSansKR.medium.font(size: 24)
+            let font = FontFamily.NotoSansKR.medium.font(size: 24).createFontSet(ratio: 1.6)
             let color = Asset.Colors.green.color
             
-            titleLabel.changeAttributes(string: string, font: font, color: color)
+            titleLabel.changeAttributes(string: string, font: font.font, color: color)
         }
         
         
