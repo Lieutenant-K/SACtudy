@@ -65,6 +65,16 @@ class OnboardViewController: UIViewController {
             .bind(to: pageControl.rx.numberOfPages)
             .disposed(by: disposeBag)
         
+        startButton.rx.tap
+            .bind { _ in
+                let vc = AuthViewController()
+                let navi = UINavigationController(rootViewController: vc)
+                navi.modalPresentationStyle = .fullScreen
+                navi.modalTransitionStyle = .crossDissolve
+                self.present(navi, animated: true)
+            }
+            .disposed(by: disposeBag)
+        
     }
     
     func configureSubviews() {
