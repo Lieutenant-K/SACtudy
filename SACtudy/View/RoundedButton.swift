@@ -10,40 +10,36 @@ import SnapKit
 
 class RoundedButton: UIButton {
     
-    var title: String? {
-        get { return super.currentTitle }
-        set { configuration?.title = newValue }
-    }
-    
     var image: UIImage? {
         get { return configuration?.image }
         set { configuration?.image = newValue }
     }
     
-    func configureButton() {
+    func configureButton(text: String, font: FontSet, color: ColorSet) {
         
         var config = UIButton.Configuration.plain()
         config.cornerStyle = .fixed
         config.background.cornerRadius = 8
         config.background.strokeWidth = 1
-        config.attributedTitle = AttributedString()
         config.titleAlignment = .center
+        config.background.backgroundColor = color.backgroundColor
+        config.background.strokeColor = color.strokeColor
+        config.imageColorTransformer = UIConfigurationColorTransformer({ _ in
+            return color.imageColor
+        })
+        
+        config.attributedTitle =
+        AttributedString(NSAttributedString(text: text, font: font, color: color.titleColor))
         
         configuration = config
     }
     
-    convenience init(title: String = "타이틀", image: UIImage? = nil, fontSet: FontSet, colorSet: ColorSet, height: Height) {
-        self.init()
-        self.title = title
-        self.image = image
-        configureAppearance(color: colorSet, font: fontSet)
-        setHeightConstraint(height: height.value)
-        
-    }
-    
-    init() {
+    init(title: String = "", image: UIImage? = nil, fontSet: FontSet, colorSet: ColorSet, height: Height) {
         super.init(frame: .zero)
-        configureButton()
+        configureButton(text: title, font: fontSet, color: colorSet)
+        setHeightConstraint(height: height.value)
+        self.image = image
+        
     }
     
     @available(*, unavailable)
