@@ -25,24 +25,21 @@ extension UILabel {
         
         let range = NSString(string: text).range(of: string)
         
-        let mutableAttr = NSMutableAttributedString()
+        let mutableAttr = NSMutableAttributedString(string: text)
         
         if let attr = attributedText {
             mutableAttr.setAttributedString(attr)
-        } else {
-            mutableAttr.setAttributedString(NSAttributedString(string: text))
         }
 
-        mutableAttr.setAttributes([.font: font, .foregroundColor: color], range: range)
+        mutableAttr.addAttributes([.font: font, .foregroundColor: color], range: range)
         
         attributedText = mutableAttr
         
     }
     
-    convenience init(text: String = " ", font: FontSet, color: UIColor = Asset.Colors.black.color) {
+    convenience init(text: String, font: FontSet, color: UIColor = Asset.Colors.black.color) {
         self.init()
         applyAppearnce(text: text, font: font, color: color)
-//        self.text = text
         
     }
     
