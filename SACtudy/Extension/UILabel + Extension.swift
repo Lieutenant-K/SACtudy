@@ -9,16 +9,6 @@ import UIKit
 
 extension UILabel {
     
-    func applyAppearnce(text: String, font: FontSet, color: UIColor) {
-        
-        var attr = AttributedString(stringLiteral: text)
-        attr.applyFontSet(font)
-        attr.foregroundColor = color
-
-        attributedText = NSAttributedString(attr)
-        
-    }
-    
     func changeAttributes(string: String, font: UIFont, color: UIColor) {
         
         guard let text else { return }
@@ -39,7 +29,7 @@ extension UILabel {
     
     convenience init(text: String, font: FontSet, color: UIColor = Asset.Colors.black.color) {
         self.init()
-        applyAppearnce(text: text, font: font, color: color)
+        attributedText = NSAttributedString(text: text, font: font, color: color)
         
     }
     
