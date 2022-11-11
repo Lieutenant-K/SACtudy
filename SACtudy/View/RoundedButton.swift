@@ -34,6 +34,20 @@ class RoundedButton: UIButton {
         configuration = config
     }
     
+    func changeColor(color: ColorSet) {
+        
+        guard var config = configuration else { return }
+        
+        config.background.backgroundColor = color.backgroundColor
+        config.background.strokeColor = color.strokeColor
+        config.imageColorTransformer = UIConfigurationColorTransformer({ _ in
+            return color.imageColor
+        })
+        config.attributedTitle?.foregroundColor = color.titleColor
+        
+        configuration = config
+    }
+    
     init(title: String = "", image: UIImage? = nil, fontSet: FontSet, colorSet: ColorSet, height: Height) {
         super.init(frame: .zero)
         configureButton(text: title, font: fontSet, color: colorSet)
