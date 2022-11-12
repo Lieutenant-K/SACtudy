@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxSwift
 
 class AuthCodeViewController: BaseViewController {
     
@@ -21,11 +22,21 @@ class AuthCodeViewController: BaseViewController {
     
     let sendMsgButton = RoundedButton(title: "재전송", fontSet: .body3, colorSet: .fill, height: .h40)
     
+    var countDown: Disposable?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureSubviews()
         bind()
         
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print(#function)
+        resetTimer()
+//        viewModel.fireTimer()
     }
     
     func bind() {
@@ -43,9 +54,10 @@ class AuthCodeViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         codeTextField.rx.text
+            .orEmpty
             .withUnretained(self)
             .bind { (vc, value) in
-                vc.viewModel.inputCode(text: value ?? "")
+                vc.viewModel.inputCode(text: value)
                 vc.viewModel.checkValidation()
             }
             .disposed(by: disposeBag)
@@ -53,7 +65,9 @@ class AuthCodeViewController: BaseViewController {
         authButton.rx.tap
             .withUnretained(self)
             .bind { vc, event in
-                vc.viewModel.authorize(completion: {token in })
+                vc.viewModel.authorize { token in
+                    print(token)
+                }
             }
             .disposed(by: disposeBag)
         
@@ -67,12 +81,24 @@ class AuthCodeViewController: BaseViewController {
         sendMsgButton.rx.tap
             .withUnretained(self)
             .bind { vc, _ in
-                vc.viewModel.authorize { token in
-                    print(token)
-                }
+                vc.resetTimer()
             }
             .disposed(by: disposeBag)
         
+//        countDown = viewModel.countDown
+//            .map{String($0)}
+//            .bind(to: timeLabel.rx.text)
+            
+        
+    }
+    
+    func resetTimer() {
+        countDown?.dispose()
+        viewModel.restTime = 60
+        countDown = viewModel.countDown
+            .map{String($0)}
+            .debug("째깍")
+            .bind(to: timeLabel.rx.text)
     }
     
     func configureSubviews() {

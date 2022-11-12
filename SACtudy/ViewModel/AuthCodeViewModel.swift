@@ -18,13 +18,22 @@ class AuthCodeViewModel {
     
     var codeNumber = ""
     
+    var restTime = 60
+    
     let code = PublishRelay<String>()
 
     let validation = BehaviorRelay<Bool>(value: false)
     
     let errorMessage = PublishRelay<String>()
     
-    func inputCode(text: String) {
+    lazy var countDown = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+        .withUnretained(self)
+        .map { model, value in model.restTime - (value+1) }
+        .take(until: { $0 <= 0 }, behavior: .exclusive)
+
+    
+    func inputCode(text: String){
+        
         
         let str = text.filter { $0.isNumber }
         let count = str.count
@@ -52,25 +61,28 @@ class AuthCodeViewModel {
             return
         }
         
-        FirebaseAuthManager.shared.authorizeWithCode(verifyId: verificationId, code: codeNumber) { result in
+        FirebaseAuthManager.shared.authorizeWithCode(verifyId: verificationId, code: codeNumber) { [weak self] result in
             
             switch result {
             case .success(let token):
-                print(token)
+                completion(token)
             case .failure(let error):
+                self?.errorMessage.accept(error.errorMessage)
+//                print(error.errorCode, error.localizedDescription)
                 
-                print(error.errorCode, error.localizedDescription)
-                print(error.code)
             }
             
         }
-        
-//        errorMessage.accept("전화 번호 인증 시작")
         
     }
     
     init(verificationId: String) {
         self.verificationId = verificationId
+        
+    }
+    
+    deinit {
+        
     }
     
 }
