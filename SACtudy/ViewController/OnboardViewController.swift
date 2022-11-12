@@ -67,7 +67,7 @@ class OnboardViewController: UIViewController {
         
         startButton.rx.tap
             .bind { _ in
-                let vc = AuthViewController()
+                let vc = AuthPhoneViewController()
                 let navi = UINavigationController(rootViewController: vc)
                 navi.modalPresentationStyle = .fullScreen
                 navi.modalTransitionStyle = .crossDissolve
