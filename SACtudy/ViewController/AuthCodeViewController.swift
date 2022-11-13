@@ -11,49 +11,42 @@ import RxSwift
 class AuthCodeViewController: BaseViewController {
     
     let viewModel: AuthCodeViewModel
-
-    let authButton = RoundedButton(title: "인증하고 시작하기", fontSet: .body3, colorSet: .disable, height: .h48)
     
-    let codeTextField = LineTextField(placeholder: "인증번호 입력", font: .title4)
-    
-    let titleLabel = UILabel(text: "인증번호가 문자로 전송되었어요", font: .display)
-    
-    let timeLabel = UILabel(text: "60", font: .title3, color: Asset.Colors.green.color)
-    
-    let sendMsgButton = RoundedButton(title: "재전송", fontSet: .body3, colorSet: .fill, height: .h40)
+    let rootView = AuthCodeView()
     
     var countDown: Disposable?
     
+    override func loadView() {
+        view = rootView
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureSubviews()
         bind()
-        
-        
     }
+    
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print(#function)
         resetTimer()
-//        viewModel.fireTimer()
+
     }
     
     func bind() {
         
         viewModel.code
-            .bind(to: codeTextField.rx.text)
+            .bind(to: rootView.codeTextField.rx.text)
             .disposed(by: disposeBag)
         
         viewModel.validation
             .withUnretained(self)
             .bind { vc, bool in
                 let color: ColorSet = bool ? .fill : .disable
-                vc.authButton.changeColor(color: color)
+                vc.rootView.authButton.changeColor(color: color)
             }
             .disposed(by: disposeBag)
         
-        codeTextField.rx.text
+        rootView.codeTextField.rx.text
             .orEmpty
             .withUnretained(self)
             .bind { (vc, value) in
@@ -62,11 +55,21 @@ class AuthCodeViewController: BaseViewController {
             }
             .disposed(by: disposeBag)
         
-        authButton.rx.tap
+        rootView.authButton.rx.tap
             .withUnretained(self)
             .bind { vc, event in
-                vc.viewModel.authorize { token in
-                    print(token)
+                vc.viewModel.authorize { result in
+                    
+                    switch result {
+                    case .success(let user):
+                        // 홈 화면으로 이동
+                        break
+                    case .failure(let error):
+                        if error == .unregisterdUser {
+                            // 닉네임 입력화면으로 이동
+                        }
+                    }
+                    
                 }
             }
             .disposed(by: disposeBag)
@@ -78,7 +81,7 @@ class AuthCodeViewController: BaseViewController {
             }
             .disposed(by: disposeBag)
         
-        sendMsgButton.rx.tap
+        rootView.sendMsgButton.rx.tap
             .withUnretained(self)
             .bind { vc, _ in
                 vc.resetTimer()
@@ -97,48 +100,10 @@ class AuthCodeViewController: BaseViewController {
         viewModel.restTime = 60
         countDown = viewModel.countDown
             .map{String($0)}
-            .debug("째깍")
-            .bind(to: timeLabel.rx.text)
+//            .debug("째깍")
+            .bind(to: rootView.timeLabel.rx.text)
     }
     
-    func configureSubviews() {
-        
-        let height = UIScreen.main.bounds.height
-        
-        [titleLabel, codeTextField, authButton, timeLabel, sendMsgButton].forEach {
-            view.addSubview($0)
-        }
-        
-        titleLabel.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.top.equalTo(view).offset(height*0.2)
-        }
-        
-        
-        codeTextField.snp.makeConstraints { make in
-            make.leading.equalToSuperview().inset(16)
-            make.trailing.equalTo(sendMsgButton.snp.leading).offset(-8)
-            make.bottom.equalTo(authButton.snp.top).offset(-72)
-            make.height.equalTo(48)
-        }
-        
-        timeLabel.snp.makeConstraints { make in
-            make.trailing.equalTo(sendMsgButton.snp.leading).offset(-20)
-            make.centerY.equalTo(codeTextField)
-        }
-        
-        
-        sendMsgButton.snp.makeConstraints { make in
-            make.centerY.equalTo(codeTextField)
-            make.trailing.equalToSuperview().inset(16)
-        }
-        
-
-        authButton.snp.makeConstraints { make in
-            make.bottom.equalToSuperview().offset(-height*0.43)
-            make.horizontalEdges.equalToSuperview().inset(16)
-        }
-    }
 
     init(verificationId: String) {
         viewModel = AuthCodeViewModel(verificationId: verificationId)
