@@ -48,10 +48,12 @@ class RoundedButton: UIButton {
         configuration = config
     }
     
-    init(title: String = "", image: UIImage? = nil, fontSet: FontSet, colorSet: ColorSet, height: Height) {
+    init(title: String = "", image: UIImage? = nil, fontSet: FontSet, colorSet: ColorSet, height: Height? = nil) {
         super.init(frame: .zero)
         configureButton(text: title, font: fontSet, color: colorSet)
-        setHeightConstraint(height: height.value)
+        if let height {
+            setHeightConstraint(height: height.value)
+        }
         self.image = image
         
     }
