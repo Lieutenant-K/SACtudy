@@ -42,11 +42,13 @@ internal enum Asset {
   }
   internal enum Images {
     internal static let arrow = ImageAsset(name: "arrow")
+    internal static let man = ImageAsset(name: "man")
     internal static let onboardingImg1 = ImageAsset(name: "onboarding_img1")
     internal static let onboardingImg2 = ImageAsset(name: "onboarding_img2")
     internal static let onboardingImg3 = ImageAsset(name: "onboarding_img3")
     internal static let splashLogo = ImageAsset(name: "splash_logo")
     internal static let splashText = ImageAsset(name: "splash_text")
+    internal static let woman = ImageAsset(name: "woman")
   }
 }
 // swiftlint:enable identifier_name line_length nesting type_body_length type_name
