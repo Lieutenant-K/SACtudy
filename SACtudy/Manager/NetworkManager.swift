@@ -14,35 +14,26 @@ class NetworkManager {
     
     private init() {}
     
-    func requestLogin(token: String, completion: @escaping (Result<User, LoginError>) -> Void) {
+    func requestSignup(parameter: Parameters) -> DataRequest {
         
-        let baseURL = "http://api.sesac.co.kr:1207"
-        let version = "/v1"
-        let url = baseURL + version + "/user"
+        let url = EndPoint.user(.signUp).url
+        
+        let token = UserDefaults.standard.string(forKey: "idtoken") ?? ""
+        
+        let header: HTTPHeaders = ["idtoken":token]
+        
+        return AF.request(url, method: .post, parameters: parameter, headers: header)
+        
+    }
+    
+    func requestLogin(token: String) -> DataRequest {
+        
+        let url = EndPoint.user(.login).url
  
         let header: HTTPHeaders = ["idtoken":token]
         
-        AF.request(url, method: .get, headers: header).responseDecodable(of: User.self ) { response in
+        return AF.request(url, method: .get, headers: header)
             
-            
-            switch response.result {
-            case let .success(user):
-                completion(Result.success(user))
-            case .failure(let error):
-                
-                print(error.localizedDescription)
-                guard let response = response.response else {
-                    print("서버 응답이 없습니다.")
-                    return
-                }
-                
-                let logInError = LoginError(rawValue: response.statusCode)!
-                
-                completion(Result.failure(logInError))
-            }
-            
-            
-        }
         
     }
     

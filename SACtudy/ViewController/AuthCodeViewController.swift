@@ -7,14 +7,13 @@
 
 import UIKit
 import RxSwift
+import RxCocoa
 
 class AuthCodeViewController: BaseViewController {
     
     let viewModel: AuthCodeViewModel
     
     let rootView = AuthCodeView()
-    
-    var countDown: Disposable?
     
     override func loadView() {
         view = rootView
@@ -23,95 +22,63 @@ class AuthCodeViewController: BaseViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         bind()
-    }
-    
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        resetTimer()
-
+        
     }
     
     func bind() {
         
-        viewModel.code
+        let input = AuthCodeViewModel.Input(
+            text: rootView.codeTextField.rx.text,
+            authButtonTap: rootView.authButton.rx.tap,
+            resendMsgButtonTap: rootView.sendMsgButton.rx.tap,
+            viewDidAppear: self.rx.viewDidAppear
+        )
+        
+        let output = viewModel.transform(input, disposeBag: disposeBag)
+        
+        output.code
             .bind(to: rootView.codeTextField.rx.text)
             .disposed(by: disposeBag)
         
-        viewModel.validation
+        output.isValidate
             .withUnretained(self)
-            .bind { vc, bool in
-                let color: ColorSet = bool ? .fill : .disable
-                vc.rootView.authButton.changeColor(color: color)
+            .bind {
+                let color: ColorSet = $1 ? .fill : .disable
+                $0.rootView.authButton.changeColor(color: color)
             }
             .disposed(by: disposeBag)
         
-        rootView.codeTextField.rx.text
-            .orEmpty
-            .withUnretained(self)
-            .bind { (vc, value) in
-                vc.viewModel.inputCode(text: value)
-                vc.viewModel.checkValidation()
-            }
+        output.resetTimer
+            .map { String($0) }
+            .bind(to: rootView.timeLabel.rx.text)
             .disposed(by: disposeBag)
         
-        rootView.authButton.rx.tap
+        output.error
             .withUnretained(self)
-            .bind { vc, event in
-                vc.viewModel.authorize { result in
-                    
-                    switch result {
-                    case .success(let user):
-                        // 홈 화면으로 이동
-                        break
-                    case .failure(let error):
-                        if error == .unregisterdUser {
-                            // 닉네임 입력화면으로 이동
-                        }
+            .bind { $0.view.makeToast($1) }
+            .disposed(by: disposeBag)
+        
+        output.login
+            .withUnretained(self)
+            .bind { vc, result in
+                switch result {
+                case .success(let user):
+                    print("받아오기 성공", user)
+                case .failure(let error):
+                    vc.view.makeToast(error.message)
+                    print("code", error.rawValue)
+                    if error == .unregisterdUser {
+                        vc.transition(NicknameViewController(), isModal: false)
                     }
-                    
                 }
             }
             .disposed(by: disposeBag)
         
-        viewModel.errorMessage
-            .withUnretained(self)
-            .bind { vc, value in
-                vc.view.makeToast(value)
-            }
-            .disposed(by: disposeBag)
-        
-        rootView.sendMsgButton.rx.tap
-            .withUnretained(self)
-            .bind { vc, _ in
-                vc.resetTimer()
-            }
-            .disposed(by: disposeBag)
-        
-//        countDown = viewModel.countDown
-//            .map{String($0)}
-//            .bind(to: timeLabel.rx.text)
-            
-        
     }
-    
-    func resetTimer() {
-        countDown?.dispose()
-        viewModel.restTime = 60
-        countDown = viewModel.countDown
-            .map{String($0)}
-//            .debug("째깍")
-            .bind(to: rootView.timeLabel.rx.text)
-    }
-    
 
     init(verificationId: String) {
         viewModel = AuthCodeViewModel(verificationId: verificationId)
         super.init(nibName: nil, bundle: nil)
-    }
-    
-    deinit {
-        print("AuthCodeController deinit")
     }
     
 }

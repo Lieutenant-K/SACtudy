@@ -9,7 +9,7 @@
 			<string></string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app-1-895754654033-ios-d4952effecf0e15884c370</string>
+				<string>app-1-355153590205-ios-5d4a8ca9947951ab9e04d4</string>
 			</array>
 		</dict>
 	</array>
@@ -42,9 +42,5 @@
 			</array>
 		</dict>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 </dict>
 </plist>

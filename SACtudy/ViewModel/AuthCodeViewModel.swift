@@ -9,77 +9,162 @@ import Foundation
 import RxSwift
 import RxCocoa
 import FirebaseAuth
+import Alamofire
 
-class AuthCodeViewModel {
+class AuthCodeViewModel: ViewModel {
+    
+    struct Input {
+        let text: ControlProperty<String?>
+        let authButtonTap: ControlEvent<Void>
+        let resendMsgButtonTap: ControlEvent<Void>
+        let viewDidAppear: ControlEvent<Bool>
+    }
+    
+    struct Output {
+        let code: Observable<String>
+        let isValidate: Observable<Bool>
+        let resetTimer: Observable<Int>
+        let error: PublishRelay<String>
+        let login: Observable<Result<User,LoginError>>
+    }
     
     let verificationId: String
     
-    var isValidate = false
+    var isValidate: Bool {
+        codeNumber.count == 6
+    }
     
     var codeNumber = ""
     
     var restTime = 60
     
-    let code = PublishRelay<String>()
-
-    let validation = BehaviorRelay<Bool>(value: false)
-    
     let errorMessage = PublishRelay<String>()
     
-    lazy var countDown = Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
-        .withUnretained(self)
-        .map { model, value in model.restTime - (value+1) }
-        .take(until: { $0 <= 0 }, behavior: .exclusive)
-
-    
-    func inputCode(text: String){
+    func createTimer() -> Observable<Int> {
         
-        
-        let str = text.filter { $0.isNumber }
-        let count = str.count
-        
-        let number = str.substring(from: 0, to: count > 6 ? 6 : count)
-        
-        codeNumber = number
-        
-        code.accept(codeNumber)
+        return Observable<Int>.interval(.seconds(1), scheduler: MainScheduler.instance)
+            .withUnretained(self)
+            .map { $0.restTime - ($1+1) }
+            .take(until: { $0 <= 0 }, behavior: .exclusive)
         
     }
     
-    func checkValidation() {
+    func requestToken(id: String, code: String) -> Observable<Result<String, AuthErrorCode>> {
         
-        isValidate = codeNumber.count == 6
-        
-        validation.accept(isValidate)
-        
-    }
-    
-    func authorize(completion: @escaping (_ result: Result<User, LoginError>) -> Void) {
-        
-        if !isValidate {
-            errorMessage.accept("전화 번호 인증 실패")
-            return
-        }
-        
-        // 파이어베이스에 인증 요청
-        FirebaseAuthManager.shared.authorizeWithCode(verifyId: verificationId, code: codeNumber) { [weak self] result in
+        Observable<Result<String, AuthErrorCode>>.create { observer in
             
-            switch result {
-            
-            case .success(let token):
-                // 받은 토큰으로 회원 정보 요청
-                NetworkManager.shared.requestLogin(token: token) { result in
-                    completion(result)
-                }
-            case .failure(let error):
-                self?.errorMessage.accept(error.errorMessage)
-                
+            FirebaseAuthManager.shared.authorizeWithCode(verifyId: id, code: code) { result in
+                observer.onNext(result)
             }
             
+            return Disposables.create()
+            
         }
-        
+
     }
     
+    
+    func requestLogin(token: String) -> Observable<Result<User, LoginError>> {
+
+        Observable.create { observer in
+
+            let request = NetworkManager.shared.requestLogin(token: token).responseDecodable(of: User.self) { response in
+
+                guard let code = response.response?.statusCode else {
+                    observer.onNext(Result.failure(LoginError.networkingError))
+                    return
+                }
+
+                switch response.result {
+                case .success(let user):
+                    observer.onNext(Result.success(user))
+                case .failure(let error):
+                    print("Login Error Description: ", error.errorDescription)
+                    let loginError = LoginError(rawValue: code)!
+                    
+                    if loginError == .unregisterdUser {
+                        UserDefaults.standard.set(token, forKey: "idtoken")
+                    }
+                    
+                    observer.onNext(.failure(loginError))
+                }
+
+            }
+
+            return Disposables.create {
+                request.cancel()
+            }
+        }
+
+    }
+
+    func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
+        
+        let code = input.text
+            .orEmpty
+            .map { text in
+                let code = text.filter { $0.isNumber }
+                return code.substring(from: 0, to: code.count > 6 ? 6 : code.count)
+            }
+        
+        let valid = code.map { $0.count == 6 }
+        
+        let resetTimer = Observable<Void>.merge([
+            input.viewDidAppear.map {_ in },
+            input.resendMsgButtonTap.map {_ in }
+        ])
+            .withUnretained(self)
+            .flatMapLatest { model, _ in
+                model.createTimer()
+            }
+        
+        let errorMsg = PublishRelay<String>()
+        let login = PublishRelay<String>()
+        let token = PublishRelay<Void>()
+        
+        input.authButtonTap
+            .withUnretained(self)
+            .map { model, _ in model.isValidate }
+            .bind {
+                if $0 { token.accept(()) }
+                else { errorMsg.accept("전화 번호 인증 실패") }
+            }
+            .disposed(by: disposeBag)
+        
+        token
+            .withUnretained(self)
+            .flatMapLatest { model, _ in
+                model.requestToken(id: model.verificationId, code: model.codeNumber)
+            }
+            .subscribe { result in
+                switch result {
+                case .failure(let error):
+                    errorMsg.accept(error.errorMessage)
+                case .success(let token):
+                    print("파이어베이스 로그인 용 토큰: ",token)
+                    login.accept(token)
+                }
+            }
+            .disposed(by: disposeBag)
+        
+        code.withUnretained(self)
+            .bind { $0.codeNumber = $1 }
+            .disposed(by: disposeBag)
+        
+        return Output(
+            code: code,
+            isValidate: valid,
+            resetTimer: resetTimer,
+            error: errorMsg,
+            login: login.withUnretained(self)
+                .flatMapLatest { model, token in
+                    model.requestLogin(token: token)
+                }
+        )
+        
+        
+    }
+
     init(verificationId: String) {
         self.verificationId = verificationId
         
