@@ -60,5 +60,9 @@ class BaseViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("fatal error")
     }
+    
+    deinit {
+        print(String(describing: Self.self), "deinit")
+    }
 
 }

@@ -33,7 +33,7 @@ class FirebaseAuthManager {
     
     func requestAuthCode(phoneNumber: String, completion: @escaping (Result<String, AuthErrorCode>) -> Void) {
         
-        Auth.auth().settings?.isAppVerificationDisabledForTesting = true
+//        Auth.auth().settings?.isAppVerificationDisabledForTesting = true
         
         PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
             
