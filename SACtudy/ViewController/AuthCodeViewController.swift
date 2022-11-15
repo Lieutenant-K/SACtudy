@@ -60,19 +60,31 @@ class AuthCodeViewController: BaseViewController {
         
         output.login
             .withUnretained(self)
-            .bind { vc, result in
-                switch result {
-                case .success(let user):
-                    print("받아오기 성공", user)
-                case .failure(let error):
-                    vc.view.makeToast(error.message)
-                    print("code", error.rawValue)
-                    if error == .unregisterdUser {
-                        vc.transition(NicknameViewController(), isModal: false)
-                    }
-                }
-            }
+            .bind { $0.receivedResponse(response: $1) }
             .disposed(by: disposeBag)
+        
+    }
+    
+    func receivedResponse(response: Result<User, SeSACError>) {
+        
+        switch response {
+            
+        case .success(let user):
+            
+            print("뷰 컨트롤러에서 로그인 이벤트 받기 성공! ", user)
+            
+            transition(MainViewController(), isModal: false)
+            
+        case .failure(let error):
+            
+            view.makeToast(error.localizedDescription)
+            
+            print("로그인 서버 응답 코드: ", error.rawValue)
+            
+            if error == .notRegistered {
+                transition(NicknameViewController(), isModal: false)
+            }
+        }
         
     }
 

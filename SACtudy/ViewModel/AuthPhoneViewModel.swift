@@ -78,7 +78,7 @@ class AuthPhoneViewModel: ViewModel {
         let sms = requestSMS
             .withUnretained(self)
             .flatMapLatest { model, _ in
-                model.requestSMSCode(phone: model.number)
+                FirebaseAuthManager.shared.requestAuthCode(phoneNumber: model.number)
             }
         
         return Output(phoneNumber: phone, isValidate: valid, requestSMS: sms, toastMessage: toastMessage)
@@ -112,18 +112,6 @@ class AuthPhoneViewModel: ViewModel {
             
         }
         
-    }
-    
-    func requestSMSCode(phone: String) -> Observable<Result<String, AuthErrorCode>> {
-        
-        Observable.create { observer in
-            
-            FirebaseAuthManager.shared.requestAuthCode(phoneNumber: phone) { result in
-                observer.onNext(result)
-            }
-            
-            return Disposables.create()
-        }
     }
     
 }

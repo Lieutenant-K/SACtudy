@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseAuth
+import RxSwift
 
 extension AuthErrorCode {
     
@@ -31,39 +32,72 @@ class FirebaseAuthManager {
     
     private init() {}
     
-    func requestAuthCode(phoneNumber: String, completion: @escaping (Result<String, AuthErrorCode>) -> Void) {
+    func requestAuthCode(phoneNumber: String) -> Observable<Result<String, AuthErrorCode>> {
         
-//        Auth.auth().settings?.isAppVerificationDisabledForTesting = true
-        
-        PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
+        Observable.create { observer in
             
-            if let error = error as? AuthErrorCode {
+            PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
                 
-                completion(Result.failure(error))
-                return
+                if let error = error as? AuthErrorCode {
+                    
+                    observer.onNext(Result.failure(error))
+                    return
+                }
+                if let verificationID {
+                    SignUpData.phoneNumber = phoneNumber
+                    observer.onNext(Result.success(verificationID))
+                }
+                
             }
-            if let verificationID {
-                completion(Result.success(verificationID))
+            
+            return Disposables.create()
+        }
+        
+    }
+    
+    func authorizeWithCode(verifyId: String, code: String) -> Observable<Result<String, AuthErrorCode>> {
+        
+        Observable.create { observer in
+            
+            let credential = PhoneAuthProvider.provider().credential(withVerificationID: verifyId, verificationCode: code)
+            
+            Auth.auth().signIn(with: credential) { result, error in
+                if let error = error as? AuthErrorCode {
+                    observer.onNext(Result.failure(error))
+                }
+                
+                result?.user.getIDToken { token, error in
+                    if let error = error as? AuthErrorCode {
+                        observer.onNext(Result.failure(error))
+                    }
+                    
+                    if let token {
+                        Constant.idtoken = token
+                        observer.onNext(Result.success(Constant.idtoken))
+                    }
+                    
+                }
             }
+            
+            return Disposables.create()
             
         }
         
     }
     
-    func authorizeWithCode(verifyId: String, code: String, completion: @escaping (Result<String, AuthErrorCode>) -> Void) {
+    static func refreshToken(completion: @escaping () -> Void) {
         
-        let credential = PhoneAuthProvider.provider().credential(withVerificationID: verifyId, verificationCode: code)
-        
-        Auth.auth().signIn(with: credential) { result, error in
-            if let error = error as? AuthErrorCode {
-                completion(Result.failure(error))
+        let currentUser = Auth.auth().currentUser
+        currentUser?.getIDTokenForcingRefresh(true) { idToken, error in
+            
+            if let error {
+                print("Firebase IdToken 재발급 에러: ", error)
+                return
             }
             
-            result?.user.getIDToken { token, error in
-                if let error = error as? AuthErrorCode {
-                    completion(Result.failure(error))
-                }
-                completion(Result.success(token ?? ""))
+            if let idToken {
+                Constant.idtoken = idToken
+                completion()
             }
         }
         

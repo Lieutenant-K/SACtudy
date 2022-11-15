@@ -50,9 +50,7 @@ class AuthPhoneViewController: BaseViewController {
         
         output.toastMessage
             .withUnretained(self)
-            .bind {
-                $0.view.makeToast($1)
-            }
+            .bind { $0.view.makeToast($1) }
             .disposed(by: disposeBag)
         
         output.requestSMS

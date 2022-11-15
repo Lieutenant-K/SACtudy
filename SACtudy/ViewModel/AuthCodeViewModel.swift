@@ -25,7 +25,7 @@ class AuthCodeViewModel: ViewModel {
         let isValidate: Observable<Bool>
         let resetTimer: Observable<Int>
         let error: PublishRelay<String>
-        let login: Observable<Result<User,LoginError>>
+        let login: Observable<Result<User,SeSACError>>
     }
     
     let verificationId: String
@@ -49,21 +49,8 @@ class AuthCodeViewModel: ViewModel {
         
     }
     
-    func requestToken(id: String, code: String) -> Observable<Result<String, AuthErrorCode>> {
-        
-        Observable<Result<String, AuthErrorCode>>.create { observer in
-            
-            FirebaseAuthManager.shared.authorizeWithCode(verifyId: id, code: code) { result in
-                observer.onNext(result)
-            }
-            
-            return Disposables.create()
-            
-        }
-
-    }
     
-    
+    /*
     func requestLogin(token: String) -> Observable<Result<User, LoginError>> {
 
         Observable.create { observer in
@@ -97,6 +84,7 @@ class AuthCodeViewModel: ViewModel {
         }
 
     }
+     */
 
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         
@@ -134,7 +122,7 @@ class AuthCodeViewModel: ViewModel {
         token
             .withUnretained(self)
             .flatMapLatest { model, _ in
-                model.requestToken(id: model.verificationId, code: model.codeNumber)
+                FirebaseAuthManager.shared.authorizeWithCode(verifyId: model.verificationId, code: model.codeNumber)
             }
             .subscribe { result in
                 switch result {
@@ -156,10 +144,7 @@ class AuthCodeViewModel: ViewModel {
             isValidate: valid,
             resetTimer: resetTimer,
             error: errorMsg,
-            login: login.withUnretained(self)
-                .flatMapLatest { model, token in
-                    model.requestLogin(token: token)
-                }
+            login: login.flatMapLatest { NetworkManager.requestLogin(token: $0) }
         )
         
         
