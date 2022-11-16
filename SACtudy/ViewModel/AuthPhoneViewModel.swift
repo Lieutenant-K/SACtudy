@@ -20,8 +20,8 @@ class AuthPhoneViewModel: ViewModel {
     struct Output {
         let phoneNumber: Observable<String>
         let isValidate: Observable<Bool>
-        let requestSMS: Observable<Result<String,AuthErrorCode>>
-        let toastMessage: PublishRelay<String>
+        let phoneAuthResult = PublishRelay<String>()
+        let toastMessage = PublishRelay<String>()
     }
     
     var isValidate = false
@@ -42,9 +42,12 @@ class AuthPhoneViewModel: ViewModel {
                 let text = $0.joined()
                 return text[0] == "0" && text[1] == "1" && text.count >= 10
             }
+    
+        let phone = numbers.map { $0.joined(separator: "-") }
         
-        let requestSMS = PublishRelay<Void>()
-        let toastMessage = PublishRelay<String>()
+        let output = Output(phoneNumber: phone, isValidate: valid)
+        
+        let requestAuthCode = PublishRelay<Void>()
         
         numbers
             .withUnretained(self)
@@ -63,25 +66,32 @@ class AuthPhoneViewModel: ViewModel {
             .withUnretained(self)
             .bind { model, _ in
                 if model.isValidate {
-                    toastMessage.accept("전화 번호 인증 시작")
-                    requestSMS.accept(())
+                    output.toastMessage.accept("전화 번호 인증 시작")
+                    requestAuthCode.accept(())
                 }
                 else {
-                    toastMessage.accept("잘못된 전화번호 형식입니다.")
+                    output.toastMessage.accept("잘못된 전화번호 형식입니다.")
                 }
             }
             .disposed(by: disposeBag)
         
         
-        let phone = numbers.map { $0.joined(separator: "-") }
-        
-        let sms = requestSMS
+        requestAuthCode
             .withUnretained(self)
-            .flatMapLatest { model, _ in
-                FirebaseAuthManager.shared.requestAuthCode(phoneNumber: model.number)
+            .map { model, _ in model.number }
+            .flatMapLatest {
+                FirebaseAuthManager.shared.requestAuthCode(phoneNumber: $0)}
+            .subscribe { result in
+                switch result {
+                case .success(let id):
+                    output.phoneAuthResult.accept(id)
+                case .failure(let error):
+                    output.toastMessage.accept(error.errorMessage)
+                }
             }
+            .disposed(by: disposeBag)
         
-        return Output(phoneNumber: phone, isValidate: valid, requestSMS: sms, toastMessage: toastMessage)
+        return output
         
     }
     

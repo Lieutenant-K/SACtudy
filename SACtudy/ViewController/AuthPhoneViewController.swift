@@ -53,15 +53,10 @@ class AuthPhoneViewController: BaseViewController {
             .bind { $0.view.makeToast($1) }
             .disposed(by: disposeBag)
         
-        output.requestSMS
+        output.phoneAuthResult
             .withUnretained(self)
-            .bind { vc, result in
-                switch result {
-                case .success(let id):
-                    vc.transition(AuthCodeViewController(verificationId: id), isModal: false)
-                case .failure(let error):
-                    vc.view.makeToast(error.errorMessage)
-                }
+            .bind { vc, id in
+                vc.transition(AuthCodeViewController(verificationId: id), isModal: false)
             }
             .disposed(by: disposeBag)
         
