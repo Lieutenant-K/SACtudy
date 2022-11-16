@@ -13,6 +13,11 @@ public extension UIViewController {
     
     func transition<T: UIViewController>(_ viewController: T, isModal: Bool) {
         
+        if !NetworkMonitor.shared.isConnected {
+            view.makeToast(Constant.networkDisconnectMessage)
+            return
+        }
+        
         if isModal {
             self.present(viewController, animated: true)
         } else {

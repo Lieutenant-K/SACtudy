@@ -15,44 +15,11 @@ class NetworkManager {
     
     private init() {}
     
-    /*
-    func requestSignup() -> DataRequest {
-        
-        let url = EndPoint.user(.signUp).url
-        
-        let token = UserDefaults.standard.string(forKey: "idtoken") ?? ""
-        
-        let parameter: Parameters = [
-            "phoneNumber":UserDefaults.standard.string(forKey: "phoneNumber") ?? "",
-            "FCMtoken":UserDefaults.standard.string(forKey: "fcmToken") ?? "",
-            "nick":UserDefaults.standard.string(forKey: "nickname") ?? "",
-            "birth":UserDefaults.standard.string(forKey: "birth") ?? "",
-            "email":UserDefaults.standard.string(forKey: "email") ?? "",
-            "gender":UserDefaults.standard.integer(forKey: "gender")
-         ]
-        
-        let header: HTTPHeaders = ["idtoken":token]
-        
-        return AF.request(url, method: .post, parameters: parameter, headers: header)
-        
-    }
-    
-    func requestLogin(token: String) -> DataRequest {
-        
-        let url = EndPoint.user(.login).url
- 
-        let header: HTTPHeaders = ["idtoken":token]
-        
-        return AF.request(url, method: .get, headers: header)
-            
-    }
-    */
-    
     static func requestLogin(token: String) -> Observable<Result<User, SeSACError>> {
         
         Constant.idtoken = token
         
-        return createSeSACDecodable(router: .login, request: User.self)
+        return createSeSACDecodable(router: .login, type: User.self)
     }
     
     static func requestSignUp(data: SignUpData) -> Observable<SeSACResponse>{
@@ -71,17 +38,22 @@ class NetworkManager {
         return Self.createSeSACRequest(router: Router.signUp(data: data))
     }
     
-    static func createSeSACDecodable<T: Decodable>(router: Router, request: T.Type) -> Observable<Result<T, SeSACError>> {
+    static func createSeSACDecodable<T: Decodable>(router: Router, type: T.Type) -> Observable<Result<T, SeSACError>> {
         
         Observable.create { observer in
-
+            
+            if !NetworkMonitor.shared.isConnected {
+                observer.onNext(.failure(.networkDisconnected))
+                observer.onCompleted()
+            }
+            
             let request = AF.request(router).responseDecodable(of: T.self) { response in
-
+                
                 guard let code = response.response?.statusCode else {
                     observer.onNext(Result.failure(.noResponse))
                     return
                 }
-
+                
                 switch response.result {
                 case .success(let data):
                     observer.onNext(Result.success(data))
@@ -106,7 +78,10 @@ class NetworkManager {
         
         return Observable<SeSACResponse>.create { observer in
 
-//            let request = AF.request("http://api.sesac.co.kr:1207/v1/user", method: router.method, parameters: router.parameters, headers: router.header)
+            if !NetworkMonitor.shared.isConnected {
+                observer.onNext(.failure(.networkDisconnected))
+                observer.onCompleted()
+            }
             
             let request = AF.request(router)
             

@@ -20,6 +20,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         ToastManager.shared.position = .top
         
+        NetworkMonitor.shared.startMonitoring()
+        
         FirebaseApp.configure()
         
         Messaging.messaging().delegate = self

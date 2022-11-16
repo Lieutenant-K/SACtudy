@@ -19,6 +19,8 @@ extension AuthErrorCode {
             return "과도한 인증 시도가 있었습니다.\n나중에 다시 시도해 주세요."
         case .invalidVerificationCode, .sessionExpired:
             return "전화 번호 인증 실패"
+        case .networkError:
+            return Constant.networkDisconnectMessage
         default:
             return "에러가 발생했습니다. 잠시 후 다시 시도해주세요"
         }

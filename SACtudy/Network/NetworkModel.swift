@@ -62,7 +62,8 @@ enum SeSACError: Int, Error {
     case notRegistered = 406
     case serverError = 500
     case clientError = 501
-    case noResponse = -1
+    case networkDisconnected = -1
+    case noResponse = -2
     case otherError = 0
     
     var message: String {
@@ -79,6 +80,8 @@ enum SeSACError: Int, Error {
             return "기타 다른 에러"
         case .noResponse:
             return "서버 응답 없음"
+        case .networkDisconnected:
+            return "네트워크 연결이 원활하지 않습니다.\n연결상태 확인 후 다시 시도해 주세요!"
         }
     }
     

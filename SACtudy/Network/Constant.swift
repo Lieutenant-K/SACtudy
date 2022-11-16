@@ -28,5 +28,9 @@ struct Constant {
         set { UserDefaults.standard.setValue(newValue, forKey: "FCMtoken") }
     }
     
+    static var networkDisconnectMessage: String {
+        "네트워크 연결이 원활하지 않습니다. 연결상태 확인 후 다시 시도해 주세요!"
+    }
+    
     
 }
