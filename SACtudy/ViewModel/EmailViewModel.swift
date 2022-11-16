@@ -30,7 +30,7 @@ class EmailViewModel: ViewModel {
         input.text
             .orEmpty
             .withUnretained(self)
-            .bind { $.email = $1 }
+            .bind { $0.email = $1 }
             .disposed(by: disposeBag)
         
         let valid = input.text
