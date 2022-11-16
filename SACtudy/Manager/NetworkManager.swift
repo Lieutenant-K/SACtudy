@@ -58,9 +58,14 @@ class NetworkManager {
                 case .success(let data):
                     observer.onNext(Result.success(data))
                 case .failure(_):
-//                    print("Login Error Description: ", error.errorDescription)
-                    if let loginError = SeSACError(rawValue: code) {
-                        observer.onNext(.failure(loginError))
+
+                    if let error = SeSACError(rawValue: code) {
+                        if error == .tokenError {
+                            FirebaseAuthManager.refreshToken {
+                                observer.onNext(.failure(error))
+                            }
+                        } else { observer.onNext(.failure(error)) }
+    
                     } else {
                         observer.onNext(.failure(.otherError))
                     }
