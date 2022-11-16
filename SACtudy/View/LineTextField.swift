@@ -58,10 +58,6 @@ class LineTextField: UITextField {
     required init?(coder: NSCoder) {
         fatalError()
     }
-    
-    deinit {
-        print("LineTextField deinit")
-    }
 
 }
 
