@@ -55,12 +55,20 @@ class AuthCodeViewController: BaseViewController {
         
         output.error
             .withUnretained(self)
-            .bind { $0.view.makeToast($1) }
+            .bind {
+                $0.view.makeToast($1) }
             .disposed(by: disposeBag)
         
-        output.login
+        output.loginResult
             .withUnretained(self)
-            .bind { $0.receivedResponse(response: $1) }
+            .bind { vc, result in
+                switch result {
+                case .success(_):
+                    vc.transition(MainViewController(), isModal: true)
+                case .notRegistered:
+                    vc.transition(NicknameViewController(), isModal: false)
+                }
+            }
             .disposed(by: disposeBag)
         
     }
