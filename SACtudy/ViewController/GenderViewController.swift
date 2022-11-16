@@ -60,10 +60,21 @@ class GenderViewController: BaseViewController {
                 $0.rootView.nextButton.changeColor(color: color) }
             .disposed(by: disposeBag)
         
-        output.signUp
+        output.errorMsg
             .withUnretained(self)
-            .bind { vc, response in
-                vc.receivedResponse(response: response)
+            .bind {  $0.view.makeToast($1) }
+            .disposed(by: disposeBag)
+        
+        output.signUpResult
+            .withUnretained(self)
+            .bind { vc, result in
+                if result == .success {
+                    vc.transition(MainViewController(), isModal: true)
+                } else if result == .notAllowedNickname {
+                    let nicknameViewController = SignUpData.nicknameViewController
+                    nicknameViewController.isBack = true
+                    self.navigationController?.popToViewController(nicknameViewController, animated: true)
+                }
             }
             .disposed(by: disposeBag)
 
@@ -86,10 +97,12 @@ class GenderViewController: BaseViewController {
                 let vc = SignUpData.nicknameViewController
                 vc.isBack = true
                 self.navigationController?.popToViewController(vc, animated: true)
+
             }
             
         case .failure(let error):
             print(error.message)
+            self.view.makeToast(error.message)
             
         }
         
