@@ -24,9 +24,9 @@ class BaseViewController: UIViewController {
     func addTapGesture() {
         
         let gesture = UITapGestureRecognizer()
-        
+        gesture.cancelsTouchesInView = false
         view.addGestureRecognizer(gesture)
-        
+    
         gesture.rx.event
             .withUnretained(self)
             .bind { vc, _ in
