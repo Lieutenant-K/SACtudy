@@ -11,7 +11,7 @@ import Foundation
 struct Constant {
     
     static var baseURL: URL {
-        return URL(string: "http://api.sesac.co.kr:1207/\(APIVersion)")!
+        return URL(string: "http://api.sesac.co.kr:1210/\(APIVersion)")!
     }
     
     static var APIVersion: String {
