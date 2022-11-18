@@ -12,10 +12,7 @@ import RxSwift
 
 class SeSACUserCardView: UIView {
 
-    let cardImageView = UIImageView().then {
-        $0.backgroundColor = .lightGray
-        $0.layer.cornerRadius = 8
-    }
+    let cardImageView = SeSACUserImageView()
     
     let expandButton = UIButton(type: .custom).then {
         $0.transform = $0.transform.rotated(by: .pi/2)
