@@ -15,7 +15,11 @@ class SeSACUserCardView: UIView {
     let cardImageView = SeSACUserImageView()
     
     let expandButton = UIButton(type: .custom).then {
-        $0.transform = $0.transform.rotated(by: .pi/2)
+        if let imageView = $0.imageView {
+            imageView.transform = imageView.transform.rotated(by: .pi/2)
+        }
+        
+        $0.contentHorizontalAlignment = .right
         $0.setImage(Asset.Images.moreArrow.image, for: .normal)
     }
     
@@ -73,10 +77,12 @@ class SeSACUserCardView: UIView {
         titleCollection.isHidden = true
         reviewContainer.isHidden = true
         
+        
         expandButton.snp.makeConstraints { make in
-            make.centerY.equalTo(nicknameLabel)
-            make.size.equalTo(16)
-            make.trailing.equalToSuperview().inset(16)
+            make.edges.equalTo(nicknameLabel)
+//            make.centerY.equalTo(nicknameLabel)
+//            make.height.equalTo(16)
+//            make.horizontalEdges.equalToSuperview().inset(16)
         }
         
         expandButton.rx.tap
@@ -85,8 +91,11 @@ class SeSACUserCardView: UIView {
                     self?.titleCollection.isHidden.toggle()
                     self?.reviewContainer.isHidden.toggle()
                 }
-
-                self.expandButton.transform = self.expandButton.transform.rotated(by: .pi)
+                
+                if let imageView = self.expandButton.imageView {
+                    imageView.transform = imageView.transform.rotated(by: .pi)
+                }
+                
             }
             .disposed(by: disposeBag)
         

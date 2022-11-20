@@ -11,7 +11,9 @@ class SeSACUserSettingView: UIView {
 
     let manButton = RoundedButton(title: "남자", fontSet: .body3, colorSet: .inactive, height: .h48)
     let womanButton = RoundedButton(title: "여자", fontSet: .body3, colorSet: .inactive, height: .h48)
-    let studyTextField = LineTextField(placeholder: "스터디를 입력해 주세요", font: .title4)
+    let studyTextField = LineTextField(placeholder: "스터디를 입력해 주세요", font: .title4).then {
+        $0.keyboardType = .default
+    }
     let allowSwitch = UISwitch().then {
         $0.onTintColor = Asset.Colors.green.color
     }
@@ -40,10 +42,12 @@ class SeSACUserSettingView: UIView {
                 make.leading.centerY.equalToSuperview()
             }
             
+            womanButton.tag = 0
             womanButton.snp.makeConstraints { make in
                 make.top.bottom.trailing.equalToSuperview()
             }
             
+            manButton.tag = 1
             manButton.snp.makeConstraints { make in
                 make.verticalEdges.equalToSuperview()
                 make.trailing.equalTo(womanButton.snp.leading).offset(-8)
@@ -65,6 +69,7 @@ class SeSACUserSettingView: UIView {
             
             studyTextField.snp.makeConstraints { make in
                 make.top.bottom.trailing.equalToSuperview()
+                make.width.equalTo(studyTextField.intrinsicContentSize.width)
                 make.height.equalTo(48)
             }
         }
