@@ -18,7 +18,7 @@ struct SignUpData {
     static var birth = ""
     static var email = ""
     static var gender = -1
-    static var nicknameViewController = NicknameViewController()
+    static weak var nicknameViewController: NicknameViewController?
     
     let phoneNumber: String
     let nickname: String
@@ -28,6 +28,8 @@ struct SignUpData {
     let FCMToken: String
     
 }
+
+struct Empty: Codable {}
 
 struct User: Codable {
     let uid, phoneNumber, email, fcMtoken: String
@@ -56,32 +58,66 @@ struct User: Codable {
     }
 }
 
-enum SeSACError: Int, Error {
+extension User {
     
-    case tokenError = 401
-    case notRegistered = 406
-    case serverError = 500
-    case clientError = 501
-    case networkDisconnected = -1
-    case noResponse = -2
-    case otherError = 0
+    struct UserSetting {
+        
+        var study: String
+        var searchable: Int
+        var ageMin: Int
+        var ageMax: Int
+        var gender: Int
+        
+    }
+    
+    var userSetting: UserSetting {
+        UserSetting(study: self.study, searchable: self.searchable, ageMin: self.ageMin, ageMax: self.ageMax, gender: self.gender)
+    }
+    
+}
+
+enum APIError: Error, Equatable {
+    
+    case tokenError
+    case serverError
+    case clientError
+    case networkDisconnected
+    case noResponse
+    case uniqueError(Int)
+    
+    var statusCode: Int {
+        switch self {
+        case .tokenError:
+            return 401
+        case .serverError:
+            return 500
+        case .clientError:
+            return 501
+        case .networkDisconnected:
+            return -1
+        case .noResponse:
+            return 0
+        case .uniqueError(let code):
+            return code
+        }
+            
+    }
+        
     
     var message: String {
         switch self {
         case .tokenError:
             return "아이디 토큰 만료 401"
-        case .notRegistered:
-            return "가입되지 않은 회원입니다. 406"
         case .serverError:
             return "서버 에러 500"
         case .clientError:
             return "클라이언트 에러 501"
-        case .otherError:
-            return "기타 다른 에러"
         case .noResponse:
             return "서버 응답 없음"
         case .networkDisconnected:
-            return "네트워크 연결이 원활하지 않습니다.\n연결상태 확인 후 다시 시도해 주세요!"
+            return Constant.networkDisconnectMessage
+        case .uniqueError(let code):
+            return "특별한 에러 코드: \(code)"
         }
     }
     
@@ -90,6 +126,34 @@ enum SeSACError: Int, Error {
 enum SeSACResponse {
     
     case success(Int)
-    case failure(SeSACError)
+    case failure(APIError)
+    
+}
+
+enum SeSACTitle: Int {
+    
+    case goodManner = 0
+    case correctAppointmnet
+    case rapidResponse
+    case kindness
+    case skillful
+    case educational
+    
+    var title: String {
+        switch self {
+        case .goodManner:
+            return "좋은 매너"
+        case .correctAppointmnet:
+            return "정확한 시간 약속"
+        case .rapidResponse:
+            return "빠른 응답"
+        case .kindness:
+            return "친절한 성격"
+        case .skillful:
+            return "능숙한 실력"
+        case .educational:
+            return "유익한 시간"
+        }
+    }
     
 }

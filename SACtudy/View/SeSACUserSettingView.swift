@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MultiSlider
 
 class SeSACUserSettingView: UIView {
 
@@ -17,8 +18,14 @@ class SeSACUserSettingView: UIView {
     let allowSwitch = UISwitch().then {
         $0.onTintColor = Asset.Colors.green.color
     }
-    let ageRangeSlider = UISlider().then {
-        $0.minimumTrackTintColor = Asset.Colors.green.color
+    let ageRangeSlider = MultiSlider().then {
+        $0.maximumValue = 65
+        $0.minimumValue = 18
+        $0.thumbImage = Asset.Images.filterControl.image
+        $0.tintColor = Asset.Colors.green.color
+        $0.outerTrackColor = Asset.Colors.gray2.color
+        $0.thumbCount = 2
+        $0.orientation = .horizontal
     }
     let ageRangeLabel = UILabel(text: "00 - 00", font: .title3, color: Asset.Colors.green.color)
     let withdrawAction = UITapGestureRecognizer()

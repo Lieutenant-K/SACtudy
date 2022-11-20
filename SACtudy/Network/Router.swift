@@ -12,6 +12,7 @@ enum Router: URLRequestConvertible {
     // MARK: - Cases
     case signUp(data: SignUpData)
     case login
+    case updateUserSetting(data: User.UserSetting)
     
     // MARK: - Methods
     var method: HTTPMethod {
@@ -20,6 +21,8 @@ enum Router: URLRequestConvertible {
             return .get
         case .signUp:
             return .post
+        case .updateUserSetting:
+            return .put
         }
     }
     
@@ -28,6 +31,8 @@ enum Router: URLRequestConvertible {
         switch self {
         case .signUp, .login:
             return "/user"
+        case .updateUserSetting:
+            return "/user/mypage"
         }
     }
     
@@ -52,6 +57,14 @@ enum Router: URLRequestConvertible {
                 "birth": data.birth,
                 "email": data.email,
                 "gender": data.gender
+            ]
+        case let .updateUserSetting(data):
+            return [
+                "searchable": data.searchable,
+                "ageMin":data.ageMin,
+                "ageMax": data.ageMax,
+                "gender": data.gender,
+                "study": data.study
             ]
         }
     }

@@ -33,10 +33,9 @@ class MyInfoMenuViewController: BaseViewController {
     
     func binding() {
         
-        let input = MyInfoMenuViewModel.Input()
+        let input = MyInfoMenuViewModel.Input(viewWillAppear: self.rx.viewWillAppear)
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
-        
         
         output.sections.bind(to: rootView.collectionView.rx.items(dataSource: createDataSource()))
             .disposed(by: disposeBag)

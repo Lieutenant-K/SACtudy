@@ -11,34 +11,34 @@ import RxSwift
 
 class NetworkManager {
     
-    static let shared = NetworkManager()
+//    static let shared = NetworkManager()
     
-    private init() {}
+//    private init() {}
     
-    static func requestLogin(token: String) -> Observable<Result<User, SeSACError>> {
+    static func requestLogin(token: String) -> Observable<Result<User, APIError>> {
         
         Constant.idtoken = token
         
         return createSeSACDecodable(router: .login, type: User.self)
     }
     
-    static func requestSignUp(data: SignUpData) -> Observable<SeSACResponse>{
+    static func requestSignUp(data: SignUpData) -> Observable<Result<Empty, APIError>>{
         
         let isValidate = data.gender >= 0
         
         if !isValidate {
             return Observable.create { observer in
-                observer.onNext(SeSACResponse.failure(.noResponse))
+                observer.onNext(.failure(.noResponse))
                 observer.onCompleted()
                 
                 return Disposables.create()
             }
         }
         
-        return Self.createSeSACRequest(router: Router.signUp(data: data))
+        return createSeSACDecodable(router: Router.signUp(data: data), type: Empty.self)
     }
     
-    static func createSeSACDecodable<T: Decodable>(router: Router, type: T.Type) -> Observable<Result<T, SeSACError>> {
+    static func createSeSACDecodable<T: Decodable>(router: Router, type: T.Type) -> Observable<Result<T, APIError>> {
         
         Observable.create { observer in
             
@@ -58,18 +58,21 @@ class NetworkManager {
                 case .success(let data):
                     observer.onNext(Result.success(data))
                 case .failure(_):
-
-                    if let error = SeSACError(rawValue: code) {
-                        if error == .tokenError {
-                            FirebaseAuthManager.refreshToken {
-                                observer.onNext(.failure(error))
-                            }
-                        } else { observer.onNext(.failure(error)) }
-    
+                    
+                    if code == APIError.tokenError.statusCode {
+                        FirebaseAuthManager.refreshToken {
+                            observer.onNext(.failure(.tokenError))
+                        }
+                    } else if code == APIError.clientError.statusCode {
+                        observer.onNext(.failure(.clientError))
+                    } else if code == APIError.serverError.statusCode {
+                        observer.onNext(.failure(.serverError))
                     } else {
-                        observer.onNext(.failure(.otherError))
+                        observer.onNext(.failure(.uniqueError(code)))
                     }
+
                 }
+                
             }
 
             return Disposables.create {
@@ -79,6 +82,7 @@ class NetworkManager {
     }
     
     
+    /*
     static func createSeSACRequest(router: Router) -> Observable<SeSACResponse> {
         
         return Observable<SeSACResponse>.create { observer in
@@ -97,7 +101,7 @@ class NetworkManager {
                     return
                 }
                 
-                if let error = SeSACError(rawValue: code) {
+                if let error = APIError(rawValue: code) {
                     if error == .tokenError {
                         FirebaseAuthManager.refreshToken {
                             observer.onNext(.failure(error))
@@ -118,5 +122,6 @@ class NetworkManager {
         }
         
     }
+     */
     
 }
