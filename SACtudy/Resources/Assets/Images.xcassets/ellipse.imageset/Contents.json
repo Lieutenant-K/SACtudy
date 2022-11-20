@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "sesac_face_5@1x.png",
+      "filename" : "Ellipse@1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "sesac_face_5@2x.png",
+      "filename" : "Ellipse@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "sesac_face_5@3x.png",
+      "filename" : "Ellipse@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
