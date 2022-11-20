@@ -44,6 +44,7 @@ internal enum Asset {
     internal static let arrow = ImageAsset(name: "arrow")
     internal static let ellipse = ImageAsset(name: "ellipse")
     internal static let faq = ImageAsset(name: "faq")
+    internal static let filterControl = ImageAsset(name: "filter_control")
     internal static let friends = ImageAsset(name: "friends")
     internal static let home = ImageAsset(name: "home")
     internal static let logout = ImageAsset(name: "logout")
