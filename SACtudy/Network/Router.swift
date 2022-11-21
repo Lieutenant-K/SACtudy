@@ -9,17 +9,19 @@ import Foundation
 import Alamofire
 
 enum Router: URLRequestConvertible {
+    
     // MARK: - Cases
     case signUp(data: SignUpData)
     case login
     case updateUserSetting(data: User.UserSetting)
+    case withdraw
     
     // MARK: - Methods
     var method: HTTPMethod {
         switch self {
         case .login:
             return .get
-        case .signUp:
+        case .signUp, .withdraw:
             return .post
         case .updateUserSetting:
             return .put
@@ -33,6 +35,8 @@ enum Router: URLRequestConvertible {
             return "/user"
         case .updateUserSetting:
             return "/user/mypage"
+        case .withdraw:
+            return "/user/withdraw"
         }
     }
     
@@ -47,7 +51,7 @@ enum Router: URLRequestConvertible {
     // MARK: - Parameters
     var parameters: Parameters? {
         switch self {
-        case .login:
+        case .login, .withdraw:
             return nil
         case let .signUp(data):
             return [
