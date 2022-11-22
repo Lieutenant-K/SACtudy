@@ -8,27 +8,6 @@
 import Foundation
 import Alamofire
 
-struct SignUpData {
-    
-    static var phoneNumber: String {
-        get { UserDefaults.standard.string(forKey: "phoneNumber") ?? ""}
-        set { UserDefaults.standard.setValue(newValue, forKey: "phoneNumber") }
-    }
-    static var nickname = ""
-    static var birth = ""
-    static var email = ""
-    static var gender = -1
-    static weak var nicknameViewController: NicknameViewController?
-    
-    let phoneNumber: String
-    let nickname: String
-    let birth: String
-    let email: String
-    let gender: Int
-    let FCMToken: String
-    
-}
-
 struct Empty: Codable {}
 
 struct User: Codable {
@@ -123,10 +102,21 @@ enum APIError: Error, Equatable {
     
 }
 
-enum SeSACResponse {
+enum APIErrors: Int, Error {
     
-    case success(Int)
-    case failure(APIError)
+    case tokenError = 401
+    case serverError = 500
+    case clientError = 501
+    case network = -1
+    case noResponse = 0
+    
+}
+
+enum APIResult<T: Decodable> {
+    
+    case success(T?)
+    case error(APIErrors)
+    case status(Int)
     
 }
 

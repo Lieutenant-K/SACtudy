@@ -11,7 +11,7 @@ import Alamofire
 enum Router: URLRequestConvertible {
     
     // MARK: - Cases
-    case signUp(data: SignUpData)
+    case signUp(data: PersonalInfomation)
     case login
     case updateUserSetting(data: User.UserSetting)
     case withdraw
@@ -55,12 +55,12 @@ enum Router: URLRequestConvertible {
             return nil
         case let .signUp(data):
             return [
-                "phoneNumber": data.phoneNumber,
-                "FCMtoken":data.FCMToken,
-                "nick": data.nickname,
-                "birth": data.birth,
-                "email": data.email,
-                "gender": data.gender
+                "phoneNumber": data.phoneNumber ?? "",
+                "FCMtoken":data.FCMtoken ?? "",
+                "nick": data.nickname ?? "",
+                "birth": data.birth ?? "",
+                "email": data.email ?? "",
+                "gender": data.gender ?? -1
             ]
         case let .updateUserSetting(data):
             return [
