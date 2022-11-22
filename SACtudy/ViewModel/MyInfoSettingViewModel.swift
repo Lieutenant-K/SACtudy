@@ -51,9 +51,11 @@ class MyInfoSettingViewModel {
         
         // 유저 정보 가져오기 결과 받기 (네트워킹)
         UserRepository.shared.loginResult
-            .subscribe { [weak self] (result: Result<User, APIError>) in
+            .subscribe(with: self) { model, result in
                 switch result {
-                case .success(let user):
+                case let .success(user):
+                    
+                    guard let user else { return }
                     output.nickname.accept(user.nick)
                     output.background.accept("sesac_background_\(user.background)")
                     output.sesac.accept("sesac_face_\(user.sesac)")
@@ -68,11 +70,9 @@ class MyInfoSettingViewModel {
                     }
                     output.sesacTitles.accept([Section(items: items)])
                     
-                    self?.userSetting = user.userSetting
-                case .failure(let error):
-                    if error == .networkDisconnected {
-                        output.updateResult.accept(.networkDisconnected)
-                    } else { print(error) }
+                    model.userSetting = user.userSetting
+                default:
+                    output.errorMessage.accept(result.message)
                 }
             }
             .disposed(by: disposeBag)
@@ -145,7 +145,7 @@ class MyInfoSettingViewModel {
                 //                UserRepository.shared.fetchUserInfo()
                 
                 // 네트워킹을 통해 새로 불러옴
-                UserRepository.shared.login.accept(Constant.idtoken)
+                UserRepository.shared.tryLogin()
             }
             .disposed(by: disposeBag)
         
