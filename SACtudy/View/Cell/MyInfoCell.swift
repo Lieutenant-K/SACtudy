@@ -21,7 +21,13 @@ class MyInfoCell: UICollectionViewCell {
         accessory.isHidden = !isFirst
         
         if isFirst {
+            imageView.layer.borderWidth = 1
+            imageView.layer.borderColor = Asset.Colors.gray2.color.cgColor
+            imageView.layer.cornerRadius = 25
             imageView.snp.updateConstraints { $0.size.equalTo(50) }
+        } else {
+            imageView.layer.borderWidth = 0
+            imageView.snp.updateConstraints{ $0.size.equalTo(25) }
         }
         
     }
@@ -32,6 +38,7 @@ class MyInfoCell: UICollectionViewCell {
             contentView.addSubview($0)
         }
         
+        imageView.contentMode = .scaleAspectFit
         imageView.snp.makeConstraints { make in
             make.size.equalTo(25)
             make.leading.equalToSuperview().inset(17)
