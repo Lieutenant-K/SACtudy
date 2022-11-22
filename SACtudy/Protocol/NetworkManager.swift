@@ -75,7 +75,14 @@ extension NetworkManager {
                 if let data = response.value {
                     observer.onNext(.success(data))
                 } else if let error = APIErrors(rawValue: code) {
-                    observer.onNext(.error(error))
+                    
+                    if error == .tokenError {
+                        refreshToken {
+                            observer.onNext(.error(error))
+                            return
+                        }
+                    } else {observer.onNext(.error(error))}
+                    
                 } else if code == 200 {
                     observer.onNext(.success(nil))
                 } else {
