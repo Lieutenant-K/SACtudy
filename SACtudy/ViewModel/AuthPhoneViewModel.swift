@@ -8,9 +8,8 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import FirebaseAuth
 
-class AuthPhoneViewModel: ViewModel {
+class AuthPhoneViewModel: ViewModel, FirebaseManager {
     
     struct Input {
         let text: ControlProperty<String?>
@@ -25,7 +24,6 @@ class AuthPhoneViewModel: ViewModel {
     }
     
     var isValidate = false
-    
     var number = ""
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
@@ -49,13 +47,13 @@ class AuthPhoneViewModel: ViewModel {
         
         let requestAuthCode = PublishRelay<Void>()
         
-        numbers
-            .withUnretained(self)
-            .bind {
-               let text = $1.joined()
-                $0.number = "+82" + (text.count > 1 ? text.substring(from: 1, to: text.count) : "")
-            }
+        input.text.orEmpty
+            .map { $0.split(separator: "-").joined() }
+            .bind(with: self) { model, string in
+                model.number = "+82" + (string.count > 1 ? string.substring(from: 1, to: string.count) : "") }
             .disposed(by: disposeBag)
+
+        
         
         valid
             .withUnretained(self)
@@ -78,14 +76,13 @@ class AuthPhoneViewModel: ViewModel {
         
         requestAuthCode
             .withUnretained(self)
-            .map { model, _ in model.number }
-            .flatMapLatest {
-                FirebaseAuthManager.shared.requestAuthCode(phoneNumber: $0)}
+            .flatMapLatest { model, _ in
+                model.requestAuthCode(phoneNumber: model.number)}
             .subscribe { result in
                 switch result {
-                case .success(let id):
+                case let .success(id):
                     output.phoneAuthResult.accept(id)
-                case .failure(let error):
+                case let .error(error):
                     output.toastMessage.accept(error.errorMessage)
                 }
             }
