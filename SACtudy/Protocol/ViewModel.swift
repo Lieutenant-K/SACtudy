@@ -1,8 +1,8 @@
 //
-//  Protocol.swift
+//  ViewModel.swift
 //  SACtudy
 //
-//  Created by 김윤수 on 2022/11/13.
+//  Created by 김윤수 on 2022/11/22.
 //
 
 import Foundation
@@ -14,13 +14,5 @@ protocol ViewModel {
     associatedtype Output
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output
-    
-}
-
-protocol ViewController {
-    
-    var viewModel: any ViewModel { get }
-    
-    func binding()
     
 }

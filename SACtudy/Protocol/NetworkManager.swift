@@ -2,43 +2,18 @@
 //  NetworkManager.swift
 //  SACtudy
 //
-//  Created by 김윤수 on 2022/11/13.
+//  Created by 김윤수 on 2022/11/22.
 //
 
 import Foundation
-import Alamofire
 import RxSwift
+import Alamofire
 
-class NetworkManager {
+protocol NetworkManager: FirebaseManager {}
+
+extension NetworkManager {
     
-//    static let shared = NetworkManager()
-    
-//    private init() {}
-    
-    static func requestLogin(token: String) -> Observable<Result<User, APIError>> {
-        
-        Constant.idtoken = token
-        
-        return createSeSACDecodable(router: .login, type: User.self)
-    }
-    
-    static func requestSignUp(data: SignUpData) -> Observable<Result<Empty, APIError>>{
-        
-        let isValidate = data.gender >= 0
-        
-        if !isValidate {
-            return Observable.create { observer in
-                observer.onNext(.failure(.noResponse))
-                observer.onCompleted()
-                
-                return Disposables.create()
-            }
-        }
-        
-        return createSeSACDecodable(router: Router.signUp(data: data), type: Empty.self)
-    }
-    
-    static func createSeSACDecodable<T: Decodable>(router: Router, type: T.Type) -> Observable<Result<T, APIError>> {
+    func createSeSACDecodable<T: Decodable>(router: Router, type: T.Type) -> Observable<Result<T, APIError>> {
         
         Observable.create { observer in
             
@@ -60,7 +35,7 @@ class NetworkManager {
                 case .failure(_):
                     
                     if code == APIError.tokenError.statusCode {
-                        FirebaseAuthManager.refreshToken {
+                        refreshToken {
                             observer.onNext(.failure(.tokenError))
                         }
                     } else if code == APIError.clientError.statusCode {
@@ -81,47 +56,38 @@ class NetworkManager {
         }
     }
     
-    
-    /*
-    static func createSeSACRequest(router: Router) -> Observable<SeSACResponse> {
+    func request<T: Decodable>(router: Router, type: T.Type) -> Observable<APIResult<T>> {
         
-        return Observable<SeSACResponse>.create { observer in
-
+        Observable.create { observer in
+            
             if !NetworkMonitor.shared.isConnected {
-                observer.onNext(.failure(.networkDisconnected))
+                observer.onNext(.error(.network))
                 observer.onCompleted()
             }
             
-            let request = AF.request(router)
-            
-            request.response { response in
+            let request = AF.request(router).responseDecodable(of: T.self) { response in
                 
                 guard let code = response.response?.statusCode else {
-                    observer.onNext(.failure(.noResponse))
+                    observer.onNext(.error(.noResponse))
                     return
                 }
                 
-                if let error = APIError(rawValue: code) {
-                    if error == .tokenError {
-                        FirebaseAuthManager.refreshToken {
-                            observer.onNext(.failure(error))
-                        }
-                    } else {
-                        observer.onNext(.failure(error))
-                    }
-                    return
+                if let data = response.value {
+                    observer.onNext(.success(data))
+                } else if let error = APIErrors(rawValue: code) {
+                    observer.onNext(.error(error))
+                } else if code == 200 {
+                    observer.onNext(.success(nil))
+                } else {
+                    observer.onNext(.status(code))
                 }
-                
-                observer.onNext(.success(code))
-                
+            
             }
 
             return Disposables.create {
                 request.cancel()
             }
         }
-        
     }
-     */
-    
+     
 }
