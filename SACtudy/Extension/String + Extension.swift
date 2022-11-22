@@ -39,4 +39,10 @@ extension String {
         return formatter.date(from: self)
     }
     
+    var isEmailFormat: Bool {
+        let regex = #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"#
+        
+        return self.range(of: regex, options: .regularExpression) != nil
+    }
+    
 }

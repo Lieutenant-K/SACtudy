@@ -21,4 +21,8 @@ extension Date {
             .dateComponents([.year, .month, .day], from: self, to: Date())
             .year ?? 0
     }
+    
+    var birthComponent: DateComponents {
+        return Calendar(identifier: .iso8601).dateComponents([.year, .month, .day], from: self)
+    }
 }
