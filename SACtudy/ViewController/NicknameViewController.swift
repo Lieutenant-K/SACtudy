@@ -37,6 +37,7 @@ class NicknameViewController: BaseViewController {
     func binding() {
         
         let input = NicknameViewModel.Input(
+            viewWillAppear: self.rx.viewWillAppear,
             text: rootView.inputTextField.rx.text,
             nextButtonTap: rootView.nextButton.rx.tap
         )
@@ -58,12 +59,9 @@ class NicknameViewController: BaseViewController {
         
         
         output.checkNickname
-            .withUnretained(self)
-            .bind { (vc, value) in
-                if value.isValid {
-                    print("다음 단계로 가자! \(value.nickname)")
-                    SignUpData.nickname = value.nickname
-                    SignUpData.nicknameViewController = self
+            .bind(with: self) { (vc, value) in
+                if value {
+                    print("다음 단계로 가자!")
                     vc.transition(BirthViewController(), isModal: false)
                 } else {
                     vc.view.makeToast("닉네임은 1자 이상 10자 이내로 부탁드려요.")
