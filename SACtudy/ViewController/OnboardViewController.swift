@@ -11,7 +11,7 @@ import RxCocoa
 import RxSwift
 import Then
 
-class OnboardViewController: UIViewController {
+class OnboardViewController: BaseViewController {
     
     let startButton = RoundedButton(title: "시작하기", fontSet: .body3, colorSet: .fill, height: .h48)
     
@@ -24,8 +24,6 @@ class OnboardViewController: UIViewController {
         $0.pageIndicatorTintColor = Asset.Colors.gray5.color
         $0.currentPageIndicatorTintColor = Asset.Colors.black.color
     }
-    
-    let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         super.viewDidLoad()
