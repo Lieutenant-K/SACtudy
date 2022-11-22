@@ -23,12 +23,6 @@ class BirthViewController: BaseViewController {
         binding()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        
-    }
-    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         rootView.yearTextField.becomeFirstResponder()
@@ -38,6 +32,7 @@ class BirthViewController: BaseViewController {
     func binding() {
 
         let input = BirthViewModel.Input(
+            viewWillAppear: self.rx.viewWillAppear,
             date: rootView.datePicker.rx.date,
             nextButtonTap: rootView.nextButton.rx.tap,
             year: rootView.yearTextField.rx.text,
@@ -71,10 +66,8 @@ class BirthViewController: BaseViewController {
             .disposed(by: disposeBag)
 
         output.check
-            .withUnretained(self)
-            .bind { vc, value in
-                if value.isValid {
-                    SignUpData.birth = value.date
+            .bind(with: self){ vc, value in
+                if value {
                     vc.transition(EmailViewController(), isModal: false)
                 } else {
                     vc.view.makeToast("새싹스터디는 만 17세 이상만 사용할 수 있습니다.")

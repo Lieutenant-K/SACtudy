@@ -16,7 +16,6 @@ class BirthView: UIView {
     let titleLabel = UILabel(text: "생년월일을 알려주세요", font: .display)
     let datePicker = UIDatePicker().then {
         $0.locale = Locale(identifier: "ko_KR")
-        $0.date = SignUpData.birth.toBirthDate ?? Date()
         $0.maximumDate = Date()
         $0.datePickerMode = .date
         $0.preferredDatePickerStyle = .wheels

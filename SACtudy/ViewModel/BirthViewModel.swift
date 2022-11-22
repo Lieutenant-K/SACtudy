@@ -12,6 +12,7 @@ import RxSwift
 class BirthViewModel: ViewModel {
     
     struct Input {
+        let viewWillAppear: ControlEvent<Bool>
         let date: ControlProperty<Date>
         let nextButtonTap: ControlEvent<Void>
         let year: ControlProperty<String?>
@@ -20,38 +21,51 @@ class BirthViewModel: ViewModel {
     }
     
     struct Output {
-        let component: Observable<DateComponents>
-        let isValidate: Observable<Bool>
-        let check: Observable<(isValid: Bool, date: String)>
+        let component = PublishRelay<DateComponents>()
+        let isValidate = BehaviorRelay<Bool>(value: false)
+        let check = PublishRelay<Bool>()
     }
-    
-    var age: Int = (SignUpData.birth.toBirthDate?.currentAge ?? 0 )
-    var birthString = SignUpData.birth
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         
-        input.date
-            .map { $0.toBirthString }
-            .bind { SignUpData.birth = $0 }
+        let output = Output()
+        
+        let date = BehaviorRelay<Date>(value: Date())
+        
+        
+        Observable.just(UserRepository.shared.personalInfo.birth?.toBirthDate ?? Date())
+            .subscribe(input.date)
             .disposed(by: disposeBag)
         
-        let date = input.date
-            .map { Calendar(identifier: .iso8601)
-                .dateComponents([.year, .month, .day], from: $0) }
+        input.viewWillAppear
+            .map { _ in UserRepository.shared.personalInfo.birth?.toBirthDate ?? Date() }
+            .bind(to: date)
+            .disposed(by: disposeBag)
         
-        let valid = date.map {
-            $0.year != nil && $0.month != nil && $0.day != nil }
+        input.date
+            .bind(to: date)
+            .disposed(by: disposeBag)
         
-        let check = input.nextButtonTap
-            .map { _ in
-                
-                let birth = SignUpData.birth
-                let valid = birth.toBirthDate?.currentAge ?? 0 >= 17
-                
-                return (isValid: valid, date: birth) }
+        date
+            .map { $0.toBirthString }
+            .bind { UserRepository.shared.personalInfo.birth = $0 }
+            .disposed(by: disposeBag)
+        
+        date
+            .map { $0.birthComponent }
+            .bind { compo in
+                let bool = compo.year != nil && compo.month != nil && compo.day != nil
+                output.component.accept(compo)
+                output.isValidate.accept(bool) }
+            .disposed(by: disposeBag)
+        
+        input.nextButtonTap
+            .map { output.isValidate.value && UserRepository.shared.personalInfo.birth?.toBirthDate?.currentAge ?? 0 >= 17 }
+            .bind(to: output.check)
+            .disposed(by: disposeBag)
         
         
-        return Output(component: date, isValidate: valid, check: check)
+        return output
         
     }
     
