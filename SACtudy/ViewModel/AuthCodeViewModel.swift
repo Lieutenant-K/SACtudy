@@ -8,17 +8,8 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import FirebaseAuth
-import Alamofire
 
-enum LoginResult {
-    
-    case success(User)
-    case notRegistered
-    
-}
-
-class AuthCodeViewModel: ViewModel {
+class AuthCodeViewModel: ViewModel, FirebaseManager {
     
     struct Input {
         let text: ControlProperty<String?>
@@ -32,20 +23,15 @@ class AuthCodeViewModel: ViewModel {
         let isValidate: Observable<Bool>
         let resetTimer: Observable<Int>
         let error = PublishRelay<String>()
-        let loginResult = PublishRelay<LoginResult>()
+        let loginResult = PublishRelay<UserRepository.LoginResult>()
     }
     
     let verificationId: String
-    
+    var codeNumber = ""
+    var restTime = 60
     var isValidate: Bool {
         codeNumber.count == 6
     }
-    
-    var codeNumber = ""
-    
-    var restTime = 60
-    
-    let errorMessage = PublishRelay<String>()
     
     func createTimer() -> Observable<Int> {
         
@@ -57,7 +43,7 @@ class AuthCodeViewModel: ViewModel {
     }
 
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
-        
+         
         let code = input.text
             .orEmpty
             .map { text in
@@ -78,54 +64,42 @@ class AuthCodeViewModel: ViewModel {
         
         let output = Output(code: code, isValidate: valid, resetTimer: resetTimer)
         
-//        let errorMsg = PublishRelay<String>()
-        let tryLogin = PublishRelay<String>()
         let tryGetToken = PublishRelay<Void>()
         
         input.authButtonTap
-            .withUnretained(self)
-            .map { model, _ in model.isValidate }
-            .bind { isValidate in
-                if isValidate {
-                    tryGetToken.accept(()) }
+            .bind(with: self) { model, _ in
+                if model.isValidate {
+                    tryGetToken.accept(())
+                }
                 else {
-                    output.error.accept("전화 번호 인증 실패") }
+                    output.error.accept("전화 번호 인증 실패")
+                }
             }
             .disposed(by: disposeBag)
         
         tryGetToken
             .withUnretained(self)
             .flatMapLatest { model, _ in
-                FirebaseAuthManager.shared.authorizeWithCode(verifyId: model.verificationId, code: model.codeNumber) }
+                model.authorizeWithCode(verifyId: model.verificationId, code: model.codeNumber) }
             .subscribe { result in
                 switch result {
-                case .failure(let error):
+                case let .error(error):
                     output.error.accept(error.errorMessage)
-                case .success(let token):
+                case let .success(token):
                     print("파이어베이스 로그인 용 토큰: ",token)
-                    tryLogin.accept(token) }
+                    UserRepository.shared.tryLogin() }
             }
             .disposed(by: disposeBag)
         
-        tryLogin.flatMapLatest {
-            NetworkManager.requestLogin(token: $0) }
-        .subscribe { result in
-            switch result {
-            case .success(let user):
-                output.loginResult.accept(.success(user))
-            case .failure(let error):
-                if error == .tokenError {
-                    tryLogin.accept(Constant.idtoken)
-                } else if error == .notRegistered {
-                    output.error.accept("등록되지 않은 회원입니다\n회원가입을 진행합니다")
-                    output.loginResult.accept(.notRegistered)
-                } else if error == .networkDisconnected {
-                    output.error.accept(Constant.networkDisconnectMessage)
-                }
-                print(error.message)
-            }
-        }
-        .disposed(by: disposeBag)
+        UserRepository.shared.loginResult
+            .bind(to: output.loginResult)
+            .disposed(by: disposeBag)
+        
+        UserRepository.shared.loginResult
+            .map { $0.message }
+            .bind(to: output.error)
+            .disposed(by: disposeBag)
+        
         
         code.withUnretained(self)
             .bind { $0.codeNumber = $1 }
@@ -136,7 +110,6 @@ class AuthCodeViewModel: ViewModel {
 
     init(verificationId: String) {
         self.verificationId = verificationId
-        
     }
     
     deinit {

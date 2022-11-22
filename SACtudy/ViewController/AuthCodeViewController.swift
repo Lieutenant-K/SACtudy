@@ -27,6 +27,8 @@ class AuthCodeViewController: BaseViewController {
     
     func bind() {
         
+        guard let scene = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate else { return }
+        
         let input = AuthCodeViewModel.Input(
             text: rootView.codeTextField.rx.text,
             authButtonTap: rootView.authButton.rx.tap,
@@ -60,39 +62,19 @@ class AuthCodeViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         output.loginResult
-            .withUnretained(self)
-            .bind { vc, result in
+            .bind(with: self) { vc, result in
                 switch result {
-                case .success(_):
-                    vc.transition(MainViewController(), isModal: true)
-                case .notRegistered:
+                case .success:
+                    let next = SeSACTabBarController()
+                    scene.window?.rootViewController = next
+                    scene.window?.makeKeyAndVisible()
+                case .unregistered:
                     vc.transition(NicknameViewController(), isModal: false)
+                default:
+                    break
                 }
             }
             .disposed(by: disposeBag)
-        
-    }
-    
-    func receivedResponse(response: Result<User, SeSACError>) {
-        
-        switch response {
-            
-        case .success(let user):
-            
-            print("뷰 컨트롤러에서 로그인 이벤트 받기 성공! ", user)
-            
-            transition(MainViewController(), isModal: false)
-            
-        case .failure(let error):
-            
-            view.makeToast(error.localizedDescription)
-            
-            print("로그인 서버 응답 코드: ", error.rawValue)
-            
-            if error == .notRegistered {
-                transition(NicknameViewController(), isModal: false)
-            }
-        }
         
     }
 
