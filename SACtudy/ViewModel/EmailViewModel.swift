@@ -12,45 +12,43 @@ import RxCocoa
 class EmailViewModel: ViewModel {
     
     struct Input {
+        let viewWillAppear: ControlEvent<Bool>
         let text: ControlProperty<String?>
         let nextButtonTap: ControlEvent<Void>
     }
 
     struct Output {
-        let isValidate: Observable<Bool>
-        let checkEmail: Observable<(isValid: Bool, email: String)>
+        let isValidate = BehaviorRelay<Bool>(value: false)
+        let checkEmail = PublishRelay<Bool>()
     }
-    
-    var isValidate = false
-
-    var email: String = ""
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         
-        input.text
-            .orEmpty
-            .withUnretained(self)
-            .bind { $0.email = $1 }
+        let output = Output()
+        
+        input.viewWillAppear
+            .compactMap { _ in UserRepository.shared.personalInfo.email }
+            .bind(to: input.text)
             .disposed(by: disposeBag)
         
-        let valid = input.text
+        input.text
             .orEmpty
-            .map { let regex = #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"#
-                return $0.range(of: regex, options: .regularExpression) != nil }
+            .bind { UserRepository.shared.personalInfo.email = $0 }
+            .disposed(by: disposeBag)
         
-        valid
-            .withUnretained(self)
-            .bind { $0.isValidate = $1 }
+        input.text
+            .orEmpty
+            .map { $0.isEmailFormat }
+            .bind(to: output.isValidate)
             .disposed(by: disposeBag)
             
  
-        let check = input.nextButtonTap
-            .withUnretained(self)
-            .map { model, _ in
-                (isValid: model.isValidate, email: model.email)
-            }
+        input.nextButtonTap
+            .map { output.isValidate.value }
+            .bind(to: output.checkEmail)
+            .disposed(by: disposeBag)
         
-        return Output(isValidate: valid, checkEmail: check)
+        return output
     }
     
 }

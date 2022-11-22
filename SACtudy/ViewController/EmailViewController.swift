@@ -22,11 +22,7 @@ class EmailViewController: BaseViewController {
         binding()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        rootView.inputTextField.text = SignUpData.email
-    }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         rootView.inputTextField.becomeFirstResponder()
@@ -36,6 +32,7 @@ class EmailViewController: BaseViewController {
     func binding() {
         
         let input = EmailViewModel.Input(
+            viewWillAppear: self.rx.viewWillAppear,
             text: rootView.inputTextField.rx.text,
             nextButtonTap: rootView.nextButton.rx.tap
         )
@@ -52,11 +49,9 @@ class EmailViewController: BaseViewController {
         
         
         output.checkEmail
-            .withUnretained(self)
-            .bind { vc,value in
-                if value.isValid {
-                    print("다음 단계로 가자! \(value.email)")
-                    SignUpData.email = value.email
+            .bind(with: self) { vc,value in
+                if value {
+                    print("다음 단계로 가자!")
                     vc.transition(GenderViewController(), isModal: false)
                 } else {
                     vc.view.makeToast("이메일 형식이 올바르지 않습니다.")
