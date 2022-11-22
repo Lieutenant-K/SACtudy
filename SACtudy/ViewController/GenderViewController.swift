@@ -22,17 +22,13 @@ class GenderViewController: BaseViewController {
         binding()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        [rootView.manButton, rootView.womanButton].forEach {
-            $0.isSelected = $0.tag == SignUpData.gender
-        }
-        rootView.nextButton.changeColor(color: SignUpData.gender >= 0 ? .fill : .disable)
-    }
     
     func binding() {
+        
+        guard let scene = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate else { return }
 
         let input = GenderViewModel.Input(
+            viewWillAppear: self.rx.viewWillAppear,
             manTap: rootView.manButton.rx.tap,
             womanTap: rootView.womanButton.rx.tap,
             nextButtonTap: rootView.nextButton.rx.tap
@@ -62,49 +58,25 @@ class GenderViewController: BaseViewController {
         
         output.errorMsg
             .withUnretained(self)
-            .bind {  $0.view.makeToast($1) }
+            .bind { $0.view.makeToast($1) }
             .disposed(by: disposeBag)
         
         output.signUpResult
-            .withUnretained(self)
-            .bind { vc, result in
-                if result == .success {
-                    vc.transition(MainViewController(), isModal: true)
-                } else if result == .notAllowedNickname {
-                    let nicknameViewController = SignUpData.nicknameViewController
-                    nicknameViewController.isBack = true
-                    self.navigationController?.popToViewController(nicknameViewController, animated: true)
+            .bind(with: self) { vc, result in
+                switch result {
+                case .success:
+                    scene.window?.rootViewController = SeSACTabBarController()
+                    scene.window?.makeKeyAndVisible()
+                case .notAvailableNickname:
+                    if let nick = vc.navigationController?.viewControllers.compactMap({ $0 as? NicknameViewController }).first {
+                        nick.isBack = true
+                        vc.navigationController?.popToViewController(nick, animated: true)
+                    }
+                default:
+                    break
                 }
             }
             .disposed(by: disposeBag)
-
-    }
-    
-    func receivedResponse(response: SeSACResponse) {
-        
-        switch response {
-            
-        case .success(let code):
-            
-            if code == 200 {
-                // 회원가입 성공
-                self.transition(MainViewController(), isModal: false)
-            } else if code == 201 {
-                // 이미 가입한 유저
-                view.makeToast("이미 가입된 유저입니다.")
-            } else if code == 202 {
-                // 사용할 수 없는 닉네임
-                let vc = SignUpData.nicknameViewController
-                vc.isBack = true
-                self.navigationController?.popToViewController(vc, animated: true)
-
-            }
-            
-        case .failure(let error):
-            print(error.message)
-            self.view.makeToast(error.message)
-            
-        }
         
     }
 

@@ -9,25 +9,18 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-enum SignUpResult: Int {
-    
-    case success = 200
-    case alreadyRegistered = 201
-    case notAllowedNickname = 202
-    
-}
-
-class GenderViewModel: ViewModel {
+class GenderViewModel: ViewModel, NetworkManager {
     
     struct Input {
+        let viewWillAppear: ControlEvent<Bool>
         let manTap: ControlEvent<Void>
         let womanTap: ControlEvent<Void>
         let nextButtonTap: ControlEvent<Void>
     }
     
     struct Output {
-        let selected: Observable<Int>
-        let signUpResult = PublishRelay<SignUpResult>()
+        let selected = PublishRelay<Int>()
+        let signUpResult = PublishRelay<UserRepository.SignUpResult>()
         let errorMsg = PublishRelay<String>()
     }
     
@@ -35,46 +28,36 @@ class GenderViewModel: ViewModel {
         
         let man = input.manTap.map { 1 }
         let woman = input.womanTap.map { 0 }
-        let select = Observable.merge([man, woman]).map{$0}
         
-        let output = Output(selected: select)
+        let output = Output()
         
-        select
-            .bind { SignUpData.gender = $0 }
+        Observable.merge([man, woman])
+            .bind(to: output.selected)
             .disposed(by: disposeBag)
         
-        let trySignUp = PublishRelay<Void>()
+        Observable.merge([man, woman])
+            .bind { UserRepository.shared.personalInfo.gender = $0 }
+            .disposed(by: disposeBag)
+        
+
+        input.viewWillAppear
+            .compactMap { _ in UserRepository.shared.personalInfo.gender}
+            .bind(to: output.selected)
+            .disposed(by: disposeBag)
         
         input.nextButtonTap
-            .bind { trySignUp.accept(()) }
+            .subscribe { _ in
+                UserRepository.shared.trySignUp()
+            }
             .disposed(by: disposeBag)
         
-        trySignUp
-            .map { let data = SignUpData.self
-                return SignUpData(
-                    phoneNumber: data.phoneNumber,
-                    nickname: data.nickname,
-                    birth: data.birth,
-                    email: data.email,
-                    gender: data.gender,
-                    FCMToken: Constant.FCMtoken) }
-            .flatMapLatest { NetworkManager.requestSignUp(data: $0) }
-            .subscribe { response in
-                switch response {
-                case .success(let code):
-                    let result = SignUpResult(rawValue: code)!
-                    if result == .alreadyRegistered {
-                        output.errorMsg.accept("이미 등록된 회원입니다")
-                    }
-                    output.signUpResult.accept(result)
-                case .failure(let error):
-                    if error == .tokenError {
-                        trySignUp.accept(())
-                    } else if error == .networkDisconnected {
-                        output.errorMsg.accept(Constant.networkDisconnectMessage)
-                    }
-                    print(error.message) }
-            }
+        UserRepository.shared.signUpResult
+            .bind(to: output.signUpResult)
+            .disposed(by: disposeBag)
+        
+        UserRepository.shared.signUpResult
+            .compactMap { $0.message }
+            .bind(to: output.errorMsg)
             .disposed(by: disposeBag)
         
         return output
