@@ -31,35 +31,40 @@ class WaitingForLaunchViewController: BaseViewController {
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
         
-        output.launchResult
+        guard let scene = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate else { return }
+        
+        output.loginResult
             .withUnretained(self)
             .bind { vc, result in
-
+                
                 switch result {
                 case .success:
                     let transit = SeSACTabBarController()
-                    transit.modalTransitionStyle = .crossDissolve
-                    transit.modalPresentationStyle = .fullScreen
+                    scene.window?.rootViewController = transit
+                    scene.window?.makeKeyAndVisible()
                     vc.transition(transit, isModal: true)
-                    
-                case .notRegisterd:
-                    let transit = NicknameViewController()
-                    transit.modalTransitionStyle = .crossDissolve
-                    transit.modalPresentationStyle = .fullScreen
+                case .unregistered:
+                    let transit = UINavigationController(rootViewController: NicknameViewController())
+                    scene.window?.rootViewController = transit
+                    scene.window?.makeKeyAndVisible()
                     vc.transition(transit, isModal: true)
-                    
-                case .authRequried:
-                    let transit = AuthPhoneViewController()
-                    transit.modalTransitionStyle = .crossDissolve
-                    transit.modalPresentationStyle = .fullScreen
-                    vc.transition(transit, isModal: true)
-                    
-                case .networkDisconnect:
-                    vc.view.makeToast(Constant.networkDisconnectMessage)
-                    
+                default:
+                    break
                 }
-                
             }
+            .disposed(by: disposeBag)
+        
+        output.isAuthNeeded
+            .bind(with: self) { vc, _ in
+                let transit = UINavigationController(rootViewController: AuthPhoneViewController())
+                scene.window?.rootViewController = transit
+                scene.window?.makeKeyAndVisible()
+                vc.transition(transit, isModal: true)
+            }
+            .disposed(by: disposeBag)
+        
+        output.errorMessage
+            .bind(with: self) { vc, text in vc.view.makeToast(text)}
             .disposed(by: disposeBag)
         
         
