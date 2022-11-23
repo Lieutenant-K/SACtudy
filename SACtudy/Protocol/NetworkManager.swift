@@ -13,49 +13,6 @@ protocol NetworkManager: FirebaseManager {}
 
 extension NetworkManager {
     
-    func createSeSACDecodable<T: Decodable>(router: Router, type: T.Type) -> Observable<Result<T, APIError>> {
-        
-        Observable.create { observer in
-            
-            if !NetworkMonitor.shared.isConnected {
-                observer.onNext(.failure(.networkDisconnected))
-                observer.onCompleted()
-            }
-            
-            let request = AF.request(router).responseDecodable(of: T.self) { response in
-                
-                guard let code = response.response?.statusCode else {
-                    observer.onNext(Result.failure(.noResponse))
-                    return
-                }
-                
-                switch response.result {
-                case .success(let data):
-                    observer.onNext(Result.success(data))
-                case .failure(_):
-                    
-                    if code == APIError.tokenError.statusCode {
-                        refreshToken {
-                            observer.onNext(.failure(.tokenError))
-                        }
-                    } else if code == APIError.clientError.statusCode {
-                        observer.onNext(.failure(.clientError))
-                    } else if code == APIError.serverError.statusCode {
-                        observer.onNext(.failure(.serverError))
-                    } else {
-                        observer.onNext(.failure(.uniqueError(code)))
-                    }
-
-                }
-                
-            }
-
-            return Disposables.create {
-                request.cancel()
-            }
-        }
-    }
-    
     func request<T: Decodable>(router: Router, type: T.Type) -> Observable<APIResult<T>> {
         
         Observable.create { observer in

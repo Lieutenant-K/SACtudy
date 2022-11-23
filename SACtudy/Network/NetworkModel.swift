@@ -55,53 +55,6 @@ extension User {
     
 }
 
-enum APIError: Error, Equatable {
-    
-    case tokenError
-    case serverError
-    case clientError
-    case networkDisconnected
-    case noResponse
-    case uniqueError(Int)
-    
-    var statusCode: Int {
-        switch self {
-        case .tokenError:
-            return 401
-        case .serverError:
-            return 500
-        case .clientError:
-            return 501
-        case .networkDisconnected:
-            return -1
-        case .noResponse:
-            return 0
-        case .uniqueError(let code):
-            return code
-        }
-            
-    }
-        
-    
-    var message: String {
-        switch self {
-        case .tokenError:
-            return "아이디 토큰 만료 401"
-        case .serverError:
-            return "서버 에러 500"
-        case .clientError:
-            return "클라이언트 에러 501"
-        case .noResponse:
-            return "서버 응답 없음"
-        case .networkDisconnected:
-            return Constant.networkDisconnectMessage
-        case .uniqueError(let code):
-            return "특별한 에러 코드: \(code)"
-        }
-    }
-    
-}
-
 enum APIErrors: Int, Error {
     
     case tokenError = 401
