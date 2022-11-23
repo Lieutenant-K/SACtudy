@@ -61,6 +61,11 @@ class UserRepository: NetworkManager {
         }
     }
     
+    enum UpdateResult: Int {
+        case success = 200
+        case networkError = -1
+    }
+    
     static let shared = UserRepository()
     
     private init() {
@@ -77,13 +82,13 @@ class UserRepository: NetworkManager {
     let signUpResult = PublishRelay<SignUpResult>()
     
     /// 변경 필요
-    let updateResult = PublishRelay<Result<Empty, APIError>>()
+    let updateResult = PublishRelay<UpdateResult>()
     let withdrawResult = PublishRelay<Result<Empty, APIError>>()
     ///
     
     let login = PublishRelay<String>()
     let signUp = PublishRelay<PersonalInfomation>()
-    let update = PublishRelay<User.UserSetting>()
+    let update = BehaviorRelay<User.UserSetting?>(value: nil)
     let withdraw = PublishRelay<Void>()
     
     func fetchUserData() -> Observable<User?> {
@@ -113,6 +118,12 @@ class UserRepository: NetworkManager {
         
     }
     
+    func tryUpdate(setting: User.UserSetting) {
+        
+        update.accept(setting)
+        
+    }
+    
     func requestWithdraw() {
         
         withdraw.accept(())
@@ -136,8 +147,8 @@ class UserRepository: NetworkManager {
         
         login
             .withUnretained(self)
-            .flatMapLatest { model, token in
-                model.request(router: .login, type: User.self) }
+            .flatMapLatest { repo, token in
+                repo.request(router: .login, type: User.self) }
             .subscribe(with: self) { (repo, result: APIResult<User>) in
                 switch result {
                 case let .success(user):
@@ -157,8 +168,8 @@ class UserRepository: NetworkManager {
         
         signUp
             .withUnretained(self)
-            .flatMapLatest { model, info in
-                model.request(router: .signUp(data: info), type: User.self) }
+            .flatMapLatest { repo, info in
+                repo.request(router: .signUp(data: info), type: User.self) }
             .subscribe(with: self) { (repo, result: APIResult<User>) in
                 switch result {
                 case let .success(user):
@@ -177,20 +188,25 @@ class UserRepository: NetworkManager {
             }
             .disposed(by: disposeBag)
         
-        
         update
+            .compactMap { $0 }
             .withUnretained(self)
-            .flatMapLatest { model, setting in
-                model.createSeSACDecodable(router: .updateUserSetting(data: setting), type: Empty.self) }
-        .subscribe { [weak self] (result: Result<Empty, APIError>) in
-            switch result {
-            case .success:
-                self?.login.accept(Constant.idtoken)
-                self?.updateResult.accept(result)
-            case .failure:
-                self?.updateResult.accept(result)
-            }}
-        .disposed(by: disposeBag)
+            .flatMapLatest { repo, setting in
+                repo.request(router: .updateUserSetting(data: setting), type: Empty.self)}
+            .subscribe(with: self) { repo, result in
+                switch result {
+                case .success:
+                    repo.updateResult.accept(.success)
+                case .error(.tokenError):
+                    repo.update.accept(repo.update.value)
+                case .error(.network):
+                    repo.updateResult.accept(.networkError)
+                default:
+                    print(result)
+                }
+            }
+            .disposed(by: disposeBag)
+        
         
         withdraw
             .withUnretained(self)

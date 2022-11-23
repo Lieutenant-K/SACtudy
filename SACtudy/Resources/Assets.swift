@@ -78,6 +78,22 @@ internal enum Asset {
     internal static let woman = ImageAsset(name: "woman")
   }
 }
+
+extension Asset.Images {
+    
+    static func sesacBackground(number: Int) -> ImageAsset? {
+        
+        [sesacBackground0, sesacBackground1, sesacBackground2, sesacBackground3, sesacBackground4, sesacBackground5, sesacBackground6, sesacBackground7, sesacBackground8]
+            .filter { $0.name == "sesac_background_\(number)"}.first
+    }
+    
+    static func sesacFace(number: Int) -> ImageAsset? {
+        
+        [sesacFace0, sesacFace1, sesacFace2, sesacFace3, sesacFace4, sesacBackground5]
+            .filter { $0.name == "sesac_face_\(number)"}.first
+    }
+    
+}
 // swiftlint:enable identifier_name line_length nesting type_body_length type_name
 
 // MARK: - Implementation Details

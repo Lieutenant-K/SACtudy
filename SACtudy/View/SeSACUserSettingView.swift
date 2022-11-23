@@ -39,6 +39,18 @@ class SeSACUserSettingView: UIView {
     
     private func makeGenderView() -> UIView {
         
+        let updateHandler: UIButton.ConfigurationUpdateHandler = { button in
+            
+            guard let button = button as? RoundedButton else { return }
+            
+            switch button.state {
+            case .selected:
+                button.changeColor(color: .fill)
+            default:
+                button.changeColor(color: .inactive)
+            }
+        }
+        
         return UIView().then {
             let label = UILabel(text: "내 성별", font: .title4)
             $0.addSubview(label)
@@ -50,15 +62,19 @@ class SeSACUserSettingView: UIView {
             }
             
             womanButton.tag = 0
+            womanButton.configurationUpdateHandler = updateHandler
             womanButton.snp.makeConstraints { make in
                 make.top.bottom.trailing.equalToSuperview()
             }
             
             manButton.tag = 1
+            manButton.configurationUpdateHandler = updateHandler
             manButton.snp.makeConstraints { make in
                 make.verticalEdges.equalToSuperview()
                 make.trailing.equalTo(womanButton.snp.leading).offset(-8)
             }
+            
+            
         }
         
     }

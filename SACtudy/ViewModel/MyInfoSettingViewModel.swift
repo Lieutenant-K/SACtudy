@@ -12,12 +12,6 @@ import RxDataSources
 
 class MyInfoSettingViewModel {
     
-    enum UpdateResult {
-        
-        case success, networkDisconnected
-        
-    }
-    
     struct Input {
         let viewWillAppear: ControlEvent<Bool>
         let manButton: ControlEvent<Void>
@@ -32,18 +26,18 @@ class MyInfoSettingViewModel {
     struct Output {
         let errorMessage = PublishRelay<String>()
         let nickname = PublishRelay<String>()
-        let background = PublishRelay<String>()
-        let sesac = PublishRelay<String>()
-        let gender = PublishRelay<Int>()
-        let study = PublishRelay<String>()
-        let searchable = PublishRelay<Bool>()
-        let ageRange = PublishRelay<[CGFloat]>()
+        let background = PublishRelay<ImageAsset?>()
+        let sesac = PublishRelay<ImageAsset?>()
+        let gender = BehaviorRelay<Int?>(value: nil)
+        let study = BehaviorRelay<String?>(value: nil)
+        let searchable = BehaviorRelay<Bool?>(value: nil)
+        let ageRange = BehaviorRelay<[CGFloat]?>(value: nil)
         let sesacTitles = PublishRelay<[Section]>()
-        let updateResult = PublishRelay<UpdateResult>()
+        let updateResult = PublishRelay<UserRepository.UpdateResult>()
         // 정보 최종 저장
     }
     
-    var userSetting: User.UserSetting?
+//    var userSetting: User.UserSetting?
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         
@@ -56,21 +50,17 @@ class MyInfoSettingViewModel {
                 case let .success(user):
                     
                     guard let user else { return }
+                    
                     output.nickname.accept(user.nick)
-                    output.background.accept("sesac_background_\(user.background)")
-                    output.sesac.accept("sesac_face_\(user.sesac)")
+                    output.background.accept(Asset.Images.sesacBackground(number: user.background))
+                    output.sesac.accept(Asset.Images.sesacFace(number: user.sesac))
                     output.gender.accept(user.gender)
                     output.study.accept(user.study)
                     output.searchable.accept(user.searchable == 1)
                     output.ageRange.accept([CGFloat(user.ageMin), CGFloat(user.ageMax)])
+                    output.sesacTitles.accept(model.createSeSACTitleSection(reputation: user.reputation))
                     
-                    let items = user.reputation.enumerated().compactMap { (index, value) in
-                        let title = SeSACTitle(rawValue: index)
-                        return title == nil ? nil : Item(title: title!.title, count: value)
-                    }
-                    output.sesacTitles.accept([Section(items: items)])
-                    
-                    model.userSetting = user.userSetting
+//                    model.userSetting = user.userSetting
                 default:
                     output.errorMessage.accept(result.message)
                 }
@@ -80,84 +70,60 @@ class MyInfoSettingViewModel {
         
         // 유저 세팅 업데이트 결과 받기
         UserRepository.shared.updateResult
-            .subscribe { [weak self] (result: Result<Empty, APIError>) in
+            .subscribe(with: self) { (model, result) in
                 switch result {
                 case .success:
                     output.updateResult.accept(.success)
-                case .failure(let error):
-                    if error == .uniqueError(200) {
-                        output.updateResult.accept(.success)
-                    }
-                    else if error == .networkDisconnected {
-                        output.updateResult.accept(.networkDisconnected)
-                    } else if error == .tokenError {
-                        if let setting = self?.userSetting {
-                            UserRepository.shared.update.accept(setting)
-                        }
-                    } else { print(error) }
+                case .networkError:
+                    output.errorMessage.accept(Constant.networkDisconnectMessage)
                 }
             }
             .disposed(by: disposeBag)
         
-        input.manButton
-            .map { 1 }
-            .bind { [weak self] value in
-                self?.userSetting?.gender = value
-                output.gender.accept(value)
-            }
-            .disposed(by: disposeBag)
+        let man = input.manButton.map {1}
+        let woman = input.womanButton.map {0}
         
-        input.womanButton
-            .map { 0 }
-            .bind { [weak self] value in
-                self?.userSetting?.gender = value
-                output.gender.accept(value)
-            }
+        Observable.merge([man, woman])
+            .bind(to: output.gender)
             .disposed(by: disposeBag)
         
         input.studyText
             .orEmpty
-            .bind { [weak self] value in
-                self?.userSetting?.study = value
-                output.study.accept(value)
-            }
+            .bind(to: output.study)
             .disposed(by: disposeBag)
         
         input.searchableSwitch
-            .bind { [weak self] (value: Bool) in
-                self?.userSetting?.searchable = value ? 1 : 0
-                output.searchable.accept(value)
-            }
+            .bind(to: output.searchable)
             .disposed(by: disposeBag)
         
         input.ageSlider
-            .bind { [weak self] (values: [CGFloat]) in
-                self?.userSetting?.ageMin = Int(values[0])
-                self?.userSetting?.ageMax = Int(values[1])
-                output.ageRange.accept(values)
-            }
+            .bind(to: output.ageRange)
             .disposed(by: disposeBag)
         
         // 뷰 등장 시 유저 정보 가져오기 (네트워킹)
         input.viewWillAppear
             .bind { _ in
-                // 이미 저장된 유저 데이터를 불러옴
-                //                UserRepository.shared.fetchUserInfo()
-                
-                // 네트워킹을 통해 새로 불러옴
-                UserRepository.shared.tryLogin()
-            }
+                UserRepository.shared.tryLogin() }
             .disposed(by: disposeBag)
         
         
         // 저장 버튼 클릭 시 유저 세팅 저장하기 (네트워킹)
         input.saveButtonTap
-            .withUnretained(self)
-            .compactMap { model, _ in
-                model.userSetting }
-            .subscribe { setting in
-                UserRepository.shared.update.accept(setting)}
+            .compactMap { _ in
+                if let ageRange = output.ageRange.value, let searchable = output.searchable.value, let gender = output.gender.value {
+                    
+                    return User.UserSetting(
+                        study: output.study.value ?? "",
+                        searchable: searchable ? 1 : 0,
+                        ageMin: Int(ageRange[0]),
+                        ageMax: Int(ageRange[1]),
+                        gender: gender)
+                    
+                } else { return nil }
+            }
+            .bind { UserRepository.shared.tryUpdate(setting: $0) }
             .disposed(by: disposeBag)
+            
         
         
         return output
@@ -188,6 +154,20 @@ extension MyInfoSettingViewModel {
             self = original
             self.items = items
         }
+        
+    }
+    
+    private func createSeSACTitleSection(reputation: [Int]) -> [Section] {
+        
+        let items = reputation.enumerated().compactMap { (index, value) in
+            if let title = SeSACTitle(rawValue: index)?.title {
+                return Item(title: title, count: value)
+            } else {
+                return nil
+            }
+        }
+        
+        return [Section(items: items)]
         
     }
     

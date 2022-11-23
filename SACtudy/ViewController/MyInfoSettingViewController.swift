@@ -19,15 +19,7 @@ class MyInfoSettingViewController: BaseViewController {
     
     let viewModel = MyInfoSettingViewModel()
     
-    private let saveButton = UIBarButtonItem(title: "저장", style: .plain, target: nil, action: nil).then {
-        let font = FontSet.title3
-        let attr: [NSAttributedString.Key:Any] = [
-            .font:font.font,
-            .baselineOffset:font.baselineOffset,
-            .paragraphStyle:font.paragraph
-        ]
-        $0.setTitleTextAttributes(attr, for: .normal)
-    }
+    private let saveButton = UIBarButtonItem(text: "저장", font: .title3)
     
     override func loadView() {
         view = rootView
@@ -59,39 +51,51 @@ class MyInfoSettingViewController: BaseViewController {
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
         
-        output.study.bind(to: rootView.settingView.studyTextField.rx.text)
+        output.study
+            .bind(to: rootView.settingView.studyTextField.rx.text)
             .disposed(by: disposeBag)
         
-        output.searchable.bind(to: rootView.settingView.allowSwitch.rx.isOn)
+        output.searchable
+            .compactMap{ $0 }
+            .bind(to: rootView.settingView.allowSwitch.rx.isOn)
             .disposed(by: disposeBag)
         
         output.gender
+            .compactMap{ $0 }
             .withUnretained(self)
-            .bind{ vc, value in
-                [vc.rootView.settingView.manButton, vc.rootView.settingView.womanButton].forEach {
-                    let color: ColorSet = $0.tag == value ? .fill : .inactive
-                    $0.changeColor(color: color)
-                }
-            }
+            .map { $0.rootView.settingView.manButton.tag == $1 }
+            .bind(to: rootView.settingView.manButton.rx.isSelected)
             .disposed(by: disposeBag)
         
-        output.nickname.bind(to: rootView.cardView.nicknameLabel.rx.text)
+        output.gender
+            .compactMap{ $0 }
+            .withUnretained(self)
+            .map { $0.rootView.settingView.womanButton.tag == $1 }
+            .bind(to: rootView.settingView.womanButton.rx.isSelected)
             .disposed(by: disposeBag)
         
-        output.ageRange.map { "\(Int($0[0])) - \(Int($0[1]))" }
+        output.nickname
+            .bind(to: rootView.cardView.nicknameLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        output.ageRange
+            .compactMap{ $0 }
+            .map { "\(Int($0[0])) - \(Int($0[1]))" }
             .bind(to: rootView.settingView.ageRangeLabel.rx.text)
             .disposed(by: disposeBag)
         
-        output.ageRange.bind(to: rootView.settingView.ageRangeSlider.rx.value)
+        output.ageRange
+            .compactMap{ $0 }
+            .bind(to: rootView.settingView.ageRangeSlider.rx.value)
             .disposed(by: disposeBag)
         
         output.background
-            .map { UIImage(named: $0) }
+            .map{ $0?.image }
             .bind(to: rootView.cardView.cardImageView.backgroundImageView.rx.image)
             .disposed(by: disposeBag)
         
         output.sesac
-            .map { UIImage(named: $0) }
+            .map { $0?.image }
             .bind(to: rootView.cardView.cardImageView.sesacImageView.rx.image)
             .disposed(by: disposeBag)
         
@@ -99,33 +103,33 @@ class MyInfoSettingViewController: BaseViewController {
             .bind(to: rootView.cardView.titleCollectionView.rx.items(dataSource: createDataSource()))
             .disposed(by: disposeBag)
         
-//        output.errorMessage
-//            .withUnretained(self)
-//            .bind { vc, text in vc.view.makeToast(text) }
-//            .disposed(by: disposeBag)
+        output.errorMessage
+            .bind(with: self) { $0.view.makeToast($1) }
+            .disposed(by: disposeBag)
         
         output.updateResult
-            .withUnretained(self)
-            .bind { vc, result in
+            .bind(with: self) { vc, result in
                 switch result {
                 case .success:
                     vc.navigationController?.popViewController(animated: true)
-                case .networkDisconnected:
-                    vc.view.makeToast(Constant.networkDisconnectMessage)
+                default:
+                    print(result)
                 }
-            }.disposed(by: disposeBag)
+            }
+            .disposed(by: disposeBag)
         
         
         rootView.settingView.withdrawAction.rx.event
-            .bind { [weak self] _ in
-                let vc = WithdrawPopupViewController()
-                vc.modalTransitionStyle = .crossDissolve
-                vc.modalPresentationStyle = .overFullScreen
-                self?.present(vc, animated: true)
+            .bind(with: self) { vc, _ in
+                let next = WithdrawPopupViewController()
+                next.modalTransitionStyle = .crossDissolve
+                next.modalPresentationStyle = .overFullScreen
+                vc.transition(next, isModal: true)
             }
             .disposed(by: disposeBag)
         
     }
+    
     
 
 }
