@@ -27,6 +27,15 @@ extension ColorSet {
         )
     }
     
+    static var normal: ColorSet {
+        ColorSet(
+            titleColor: Asset.Colors.black.color,
+            backgroundColor: Asset.Colors.white.color,
+            strokeColor: Asset.Colors.white.color,
+            imageColor: Asset.Colors.black.color
+        )
+    }
+    
     static var inactive: ColorSet {
         ColorSet(
             titleColor: Asset.Colors.black.color,

@@ -34,7 +34,7 @@ extension FontSet {
     }
     
     static var title4: FontSet {
-        FontFamily.NotoSansKR.regular.font(size: 16).createFontSet(ratio: 1.6)
+        FontFamily.NotoSansKR.regular.font(size: 14).createFontSet(ratio: 1.6)
     }
     
     static var title5: FontSet {
