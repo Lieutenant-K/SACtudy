@@ -41,6 +41,7 @@ internal enum Asset {
     internal static let yellowgreen = ColorAsset(name: "yellowgreen")
   }
   internal enum Images {
+    internal static let antenna = ImageAsset(name: "antenna")
     internal static let arrow = ImageAsset(name: "arrow")
     internal static let ellipse = ImageAsset(name: "ellipse")
     internal static let faq = ImageAsset(name: "faq")
@@ -49,6 +50,8 @@ internal enum Asset {
     internal static let home = ImageAsset(name: "home")
     internal static let logout = ImageAsset(name: "logout")
     internal static let man = ImageAsset(name: "man")
+    internal static let mapMarker = ImageAsset(name: "map_marker")
+    internal static let message = ImageAsset(name: "message")
     internal static let moreArrow = ImageAsset(name: "more_arrow")
     internal static let my = ImageAsset(name: "my")
     internal static let notice = ImageAsset(name: "notice")
@@ -56,7 +59,9 @@ internal enum Asset {
     internal static let onboardingImg2 = ImageAsset(name: "onboarding_img2")
     internal static let onboardingImg3 = ImageAsset(name: "onboarding_img3")
     internal static let permit = ImageAsset(name: "permit")
+    internal static let place = ImageAsset(name: "place")
     internal static let qna = ImageAsset(name: "qna")
+    internal static let search = ImageAsset(name: "search")
     internal static let sesacBackground0 = ImageAsset(name: "sesac_background_0")
     internal static let sesacBackground1 = ImageAsset(name: "sesac_background_1")
     internal static let sesacBackground2 = ImageAsset(name: "sesac_background_2")
@@ -77,22 +82,6 @@ internal enum Asset {
     internal static let splashText = ImageAsset(name: "splash_text")
     internal static let woman = ImageAsset(name: "woman")
   }
-}
-
-extension Asset.Images {
-    
-    static func sesacBackground(number: Int) -> ImageAsset? {
-        
-        [sesacBackground0, sesacBackground1, sesacBackground2, sesacBackground3, sesacBackground4, sesacBackground5, sesacBackground6, sesacBackground7, sesacBackground8]
-            .filter { $0.name == "sesac_background_\(number)"}.first
-    }
-    
-    static func sesacFace(number: Int) -> ImageAsset? {
-        
-        [sesacFace0, sesacFace1, sesacFace2, sesacFace3, sesacFace4, sesacBackground5]
-            .filter { $0.name == "sesac_face_\(number)"}.first
-    }
-    
 }
 // swiftlint:enable identifier_name line_length nesting type_body_length type_name
 
