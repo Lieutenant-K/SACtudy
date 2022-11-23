@@ -24,8 +24,6 @@ class GenderViewController: BaseViewController {
     
     
     func binding() {
-        
-        guard let scene = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate else { return }
 
         let input = GenderViewModel.Input(
             viewWillAppear: self.rx.viewWillAppear,
@@ -65,8 +63,7 @@ class GenderViewController: BaseViewController {
             .bind(with: self) { vc, result in
                 switch result {
                 case .success:
-                    scene.window?.rootViewController = SeSACTabBarController()
-                    scene.window?.makeKeyAndVisible()
+                    vc.sceneDelegate?.setRootViewController(vc: SeSACTabBarController())
                 case .notAvailableNickname:
                     if let nick = vc.navigationController?.viewControllers.compactMap({ $0 as? NicknameViewController }).first {
                         nick.isBack = true

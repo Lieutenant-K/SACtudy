@@ -27,8 +27,6 @@ class AuthCodeViewController: BaseViewController {
     
     func bind() {
         
-        guard let scene = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate else { return }
-        
         let input = AuthCodeViewModel.Input(
             text: rootView.codeTextField.rx.text,
             authButtonTap: rootView.authButton.rx.tap,
@@ -65,9 +63,7 @@ class AuthCodeViewController: BaseViewController {
             .bind(with: self) { vc, result in
                 switch result {
                 case .success:
-                    let next = SeSACTabBarController()
-                    scene.window?.rootViewController = next
-                    scene.window?.makeKeyAndVisible()
+                    vc.sceneDelegate?.setRootViewController(vc: SeSACTabBarController())
                 case .unregistered:
                     vc.transition(NicknameViewController(), isModal: false)
                 default:
