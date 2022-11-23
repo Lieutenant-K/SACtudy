@@ -66,6 +66,23 @@ class UserRepository: NetworkManager {
         case networkError = -1
     }
     
+    enum WithdrawResult: Int {
+        case success = 200
+        case networkError = -1
+        case alreadyWithdrawed = 406
+        
+        var message: String? {
+            switch self {
+            case .networkError:
+                return Constant.networkDisconnectMessage
+            case .alreadyWithdrawed:
+                return "이미 탈퇴 처리된 회원입니다"
+            default:
+                return nil
+            }
+        }
+    }
+    
     static let shared = UserRepository()
     
     private init() {
@@ -80,16 +97,14 @@ class UserRepository: NetworkManager {
     
     let loginResult = PublishRelay<LoginResult>()
     let signUpResult = PublishRelay<SignUpResult>()
-    
-    /// 변경 필요
     let updateResult = PublishRelay<UpdateResult>()
-    let withdrawResult = PublishRelay<Result<Empty, APIError>>()
-    ///
+    let withdrawResult = PublishRelay<WithdrawResult>()
     
-    let login = PublishRelay<String>()
-    let signUp = PublishRelay<PersonalInfomation>()
-    let update = BehaviorRelay<User.UserSetting?>(value: nil)
-    let withdraw = PublishRelay<Void>()
+    
+    private let login = PublishRelay<String>()
+    private let signUp = PublishRelay<PersonalInfomation>()
+    private let update = BehaviorRelay<User.UserSetting?>(value: nil)
+    private let withdraw = PublishRelay<Void>()
     
     func fetchUserData() -> Observable<User?> {
         
@@ -211,26 +226,25 @@ class UserRepository: NetworkManager {
         withdraw
             .withUnretained(self)
             .flatMapLatest { model, _ in
-                model.createSeSACDecodable(router: .withdraw, type: Empty.self) }
-        .subscribe(onNext: { [weak self] (result: Result<Empty, APIError>) in
+                model.request(router: .withdraw, type: Empty.self) }
+            .subscribe(with: self) { repo, result in
+                
             switch result {
                 
             case .success:
-                self?.cleanUserData()
-                self?.withdrawResult.accept(result)
-            case let .failure(error):
-                if error == .uniqueError(200) {
-                    self?.cleanUserData()
-                    self?.withdrawResult.accept(result)
-                }
-                else if error == .tokenError {
-                    self?.requestWithdraw()
-                    return
-                } else if error == .uniqueError(406) {
-                    self?.withdrawResult.accept(result)}
+                repo.cleanUserData()
+                repo.withdrawResult.accept(.success)
+            case .error(.tokenError):
+                repo.withdraw.accept(())
+            case .error(.network):
+                repo.withdrawResult.accept(.networkError)
+            case .status(406):
+                repo.withdrawResult.accept(.alreadyWithdrawed)
+            default:
+                print(result)
             }
             
-        })
+        }
         .disposed(by: disposeBag)
         
         

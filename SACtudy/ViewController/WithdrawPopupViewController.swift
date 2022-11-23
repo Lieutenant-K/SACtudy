@@ -11,22 +11,43 @@ import RxCocoa
 
 class WithdrawPopupViewController: BaseViewController {
 
-    let popupView = PopupView(title: "정말 탈퇴하시겠습니까?", subtitle: "탈퇴하시면 새싹 스터디를 이용할 수 없어요ㅠ")
+    let rootView = PopupView(title: "정말 탈퇴하시겠습니까?", subtitle: "탈퇴하시면 새싹 스터디를 이용할 수 없어요ㅠ")
+    
+    let viewModel = WithdrawPopupViewModel()
     
     override func loadView() {
-        view = popupView
+        view = rootView
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = Asset.Colors.black.color.withAlphaComponent(0.5)
+        binding()
+    }
+    
+    func binding() {
         
-        popupView.cancleButton.rx.tap
-            .bind { _ in
-                self.dismiss(animated: true)
+        let input = WithdrawPopupViewModel.Input(okButtonTap: rootView.okButton.rx.tap)
+        
+        let output = viewModel.transform(input, disposeBag: disposeBag)
+        
+        output.withdrawResult
+            .bind(with: self) { vc, result in
+                
+                switch result {
+                case .success, .alreadyWithdrawed:
+                    vc.sceneDelegate?.setRootViewController(vc: OnboardViewController())
+                default:
+                    vc.view.makeToast(result.message)
+                }
             }
             .disposed(by: disposeBag)
+        
+        rootView.cancleButton.rx.tap
+            .bind(with: self) { vc, _ in
+                vc.dismiss(animated: true) }
+            .disposed(by: disposeBag)
+        
         
     }
 

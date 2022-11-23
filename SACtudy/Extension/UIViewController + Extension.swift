@@ -11,6 +11,10 @@ import RxSwift
 
 public extension UIViewController {
     
+    internal var sceneDelegate: SceneDelegate? {
+        return UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate
+    }
+    
     func transition<T: UIViewController>(_ viewController: T, isModal: Bool) {
         
         if !NetworkMonitor.shared.isConnected {
