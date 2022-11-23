@@ -11,8 +11,8 @@ final class SeSACTabBarController: UITabBarController {
 
     private func configureTabBarItems() {
         
-        let main = MainViewController()
-        main.tabBarItem = UITabBarItem(title: "홈", image: Asset.Images.home.image, tag: 0)
+        let home = HomeViewController()
+        home.tabBarItem = UITabBarItem(title: "홈", image: Asset.Images.home.image, tag: 0)
         
         let shop = ShopViewController()
         shop.tabBarItem = UITabBarItem(title: "새싹샵", image: Asset.Images.shop.image, tag: 1)
@@ -23,7 +23,7 @@ final class SeSACTabBarController: UITabBarController {
         let myInfo = MyInfoMenuViewController()
         myInfo.tabBarItem = UITabBarItem(title: "내정보", image: Asset.Images.my.image, tag: 3)
         
-        viewControllers = [main, shop, friends, myInfo].map {UINavigationController(rootViewController: $0)}
+        viewControllers = [home, shop, friends, myInfo].map {UINavigationController(rootViewController: $0)}
         
         let font = FontSet.body4
         
