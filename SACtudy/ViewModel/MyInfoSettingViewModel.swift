@@ -100,10 +100,17 @@ class MyInfoSettingViewModel {
             .bind(to: output.ageRange)
             .disposed(by: disposeBag)
         
-        // 뷰 등장 시 유저 정보 가져오기 (네트워킹)
+        // 뷰 등장 시 유저 정보 가져오고 스트림 끊기
         input.viewWillAppear
-            .bind { _ in
-                UserRepository.shared.tryLogin() }
+            .flatMap { _ in
+                Observable<Void>.create { observer in
+                    UserRepository.shared.tryLogin()
+                    observer.onError(APIErrors.noResponse)
+                    
+                    return Disposables.create()
+                }
+            }
+            .subscribe()
             .disposed(by: disposeBag)
         
         
