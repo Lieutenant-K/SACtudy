@@ -8,47 +8,40 @@
 import Foundation
 import Alamofire
 
-enum Router: URLRequestConvertible {
+enum UserURI: URI {
     
-    // MARK: - Cases
     case signUp(data: PersonalInfomation)
     case login
     case updateUserSetting(data: User.UserSetting)
     case withdraw
     
-    // MARK: - Methods
+    var baseURI: String {
+        return "/user"
+    }
+    
+    var subURI: String {
+        switch self {
+        case .signUp, .login:
+            return ""
+        case .updateUserSetting:
+            return "/mypage"
+        case .withdraw:
+            return "/withdraw"
+        }
+    }
+    
     var method: HTTPMethod {
         switch self {
-        case .login:
-            return .get
         case .signUp, .withdraw:
             return .post
+        case .login:
+            return .get
         case .updateUserSetting:
             return .put
         }
     }
     
-    // MARK: - Paths
-    var path: String {
-        switch self {
-        case .signUp, .login:
-            return "/user"
-        case .updateUserSetting:
-            return "/user/mypage"
-        case .withdraw:
-            return "/user/withdraw"
-        }
-    }
     
-    // MARK: - Header
-    var header: HTTPHeaders {
-        switch self {
-        default:
-            return ["idtoken":Constant.idtoken]
-        }
-    }
-    
-    // MARK: - Parameters
     var parameters: Parameters? {
         switch self {
         case .login, .withdraw:
@@ -73,16 +66,78 @@ enum Router: URLRequestConvertible {
         }
     }
     
-    /*
-    var dataType: Codable? {
+}
+
+enum QueueURI: URI {
+    
+    case myQueueState
+    
+    var baseURI: String {
+        return "/queue"
+    }
+    
+    var subURI: String {
         switch self {
-        case .signUp(let data):
-            return nil
-        case .login:
-            return User
+        case .myQueueState:
+            return "/myQueueState"
         }
     }
-    */
+    
+    var method: HTTPMethod {
+        switch self {
+        case .myQueueState:
+            return .get
+        }
+    }
+    
+    
+    var parameters: Parameters? {
+        switch self {
+        default:
+            return nil
+        }
+    }
+    
+}
+
+enum Router: URLRequestConvertible {
+    
+    // MARK: - Cases
+    case user(UserURI)
+    case queue(QueueURI)
+    
+    var uri: URI {
+        switch self {
+        case let .user(uri):
+            return uri
+        case let .queue(uri):
+            return uri
+        }
+    }
+    
+    // MARK: - Methods
+    var method: HTTPMethod {
+        return uri.method
+    }
+    
+    // MARK: - Paths
+    var path: String {
+        return uri.path
+    }
+    
+    // MARK: - Header
+    var header: HTTPHeaders {
+        switch self {
+        default:
+            return ["idtoken":Constant.idtoken]
+        }
+    }
+    
+    // MARK: - Parameters
+    var parameters: Parameters? {
+        return uri.parameters
+    }
+    
     
     // MARK: - URL Request
     func asURLRequest() throws -> URLRequest {
@@ -96,7 +151,6 @@ enum Router: URLRequestConvertible {
         
         // Common Headers
         urlRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-//        urlRequest.setValue(APIConstants.token, forHTTPHeaderField: HTTPHeaderField.xAuthToken.rawValue)
         
         if let parameters = parameters {
             return try URLEncoding.default.encode(urlRequest, with: parameters)

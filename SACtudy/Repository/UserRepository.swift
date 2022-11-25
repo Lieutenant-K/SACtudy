@@ -163,7 +163,7 @@ class UserRepository: NetworkManager {
         login
             .withUnretained(self)
             .flatMapLatest { repo, token in
-                repo.request(router: .login, type: User.self) }
+                repo.request(router: .user(.login), type: User.self) }
             .subscribe(with: self) { (repo, result: APIResult<User>) in
                 switch result {
                 case let .success(user):
@@ -184,7 +184,7 @@ class UserRepository: NetworkManager {
         signUp
             .withUnretained(self)
             .flatMapLatest { repo, info in
-                repo.request(router: .signUp(data: info), type: User.self) }
+                repo.request(router: .user(.signUp(data: info)), type: User.self) }
             .subscribe(with: self) { (repo, result: APIResult<User>) in
                 switch result {
                 case let .success(user):
@@ -207,7 +207,7 @@ class UserRepository: NetworkManager {
             .compactMap { $0 }
             .withUnretained(self)
             .flatMapLatest { repo, setting in
-                repo.request(router: .updateUserSetting(data: setting), type: Empty.self)}
+                repo.request(router: .user(.updateUserSetting(data: setting)), type: Empty.self)}
             .subscribe(with: self) { repo, result in
                 switch result {
                 case .success:
@@ -226,7 +226,7 @@ class UserRepository: NetworkManager {
         withdraw
             .withUnretained(self)
             .flatMapLatest { model, _ in
-                model.request(router: .withdraw, type: Empty.self) }
+                model.request(router: .user(.withdraw), type: Empty.self) }
             .subscribe(with: self) { repo, result in
                 
             switch result {
