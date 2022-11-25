@@ -7,6 +7,8 @@
 
 import UIKit
 import SnapKit
+import RxCocoa
+import RxSwift
 
 final class GenderFilterButtonStack: UIView {
 
@@ -44,4 +46,21 @@ final class GenderFilterButtonStack: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+}
+
+extension Reactive where Base: GenderFilterButtonStack {
+    var selectFilter: ControlEvent<GenderFilter> {
+        let man = base.manFilterButton.rx.tap.map {GenderFilter.man}
+        let woman = base.womanFilterButton.rx.tap.map {GenderFilter.woman}
+        let noFilter = base.noFilterButton.rx.tap.map {GenderFilter.noFilter}
+        return ControlEvent(events: Observable.merge([man, woman, noFilter]))
+    }
+    
+    var currentFilter: Binder<GenderFilter> {
+        return Binder(base) { base, filter in
+            base.manFilterButton.isSelected = filter == .man
+            base.womanFilterButton.isSelected = filter == .woman
+            base.noFilterButton.isSelected = filter == .noFilter
+        }
+    }
 }

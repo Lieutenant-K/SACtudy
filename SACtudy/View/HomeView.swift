@@ -11,8 +11,10 @@ import SnapKit
 import Then
 
 class HomeView: UIView {
-
-    let mapView = MKMapView()
+    
+    let floatingButton = MapFloatingButton()
+    let centerPin = UIImageView(image: Asset.Images.mapMarker.image)
+    let mapView = HomeMapView()
     let genderFilter = GenderFilterButtonStack()
     let gpsButton = RoundedButton(image: Asset.Images.place.image, fontSet: .title3, colorSet: .normal)
     
@@ -34,6 +36,17 @@ class HomeView: UIView {
             $0.top.equalTo(genderFilter.snp.bottom).offset(16)
             $0.leading.equalTo(safeAreaLayoutGuide).offset(16)
             $0.size.equalTo(genderFilter.snp.width)
+        }
+        
+        addSubview(centerPin)
+        centerPin.snp.makeConstraints {
+            $0.center.equalToSuperview()
+            $0.size.equalTo(centerPin.intrinsicContentSize)
+        }
+        
+        addSubview(floatingButton)
+        floatingButton.snp.makeConstraints { make in
+            make.trailing.bottom.equalTo(safeAreaLayoutGuide).inset(16)
         }
         
     }

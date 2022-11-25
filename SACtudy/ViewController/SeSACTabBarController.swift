@@ -6,12 +6,15 @@
 //
 
 import UIKit
+import CoreLocation
 
 final class SeSACTabBarController: UITabBarController {
 
     private func configureTabBarItems() {
         
-        let home = HomeViewController()
+        let manager = CLLocationManager()
+        let home = HomeViewController(manager: manager)
+        manager.delegate = home
         home.tabBarItem = UITabBarItem(title: "홈", image: Asset.Images.home.image, tag: 0)
         
         let shop = ShopViewController()

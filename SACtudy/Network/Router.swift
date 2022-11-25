@@ -71,6 +71,7 @@ enum UserURI: URI {
 enum QueueURI: URI {
     
     case myQueueState
+    case search(lat: Double, long: Double)
     
     var baseURI: String {
         return "/queue"
@@ -80,6 +81,8 @@ enum QueueURI: URI {
         switch self {
         case .myQueueState:
             return "/myQueueState"
+        case .search:
+            return "/search"
         }
     }
     
@@ -87,12 +90,16 @@ enum QueueURI: URI {
         switch self {
         case .myQueueState:
             return .get
+        case .search:
+            return .post
         }
     }
     
     
     var parameters: Parameters? {
         switch self {
+        case let .search(lat, long):
+            return ["lat": lat, "long": long]
         default:
             return nil
         }

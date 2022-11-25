@@ -55,6 +55,25 @@ extension User {
     
 }
 
+struct MyQueueState: Codable {
+    let dodged, matched, reviewed: Int
+    let matchedNick, matchedUid: String?
+}
+
+struct NearUser: Codable {
+    let uid, nick: String
+    let lat, long: Double
+    let reputation: [Int]
+    let studylist, reviews: [String]
+    let gender, type, sesac, background: Int
+}
+
+struct UserSearchResult: Codable {
+    let fromQueueDB: [NearUser]
+    let fromQueueDBRequested: [NearUser]
+    let fromRecommend: [String]
+}
+
 enum APIErrors: Int, Error {
     
     case tokenError = 401
