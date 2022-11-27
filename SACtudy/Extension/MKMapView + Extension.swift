@@ -43,9 +43,9 @@ extension Reactive where Base: MKMapView {
         }
     }
     
-    var regionDidChange: ControlEvent<CLLocationCoordinate2D> {
+    var regionDidChange: ControlEvent<Coordinate> {
         let source = delegate.methodInvoked(#selector(MKMapViewDelegate.mapView(_:regionDidChangeAnimated:)))
-            .map { [base] _ in base.region.center }
+            .map { [base] _ in base.region.center.toCoordinate }
         return ControlEvent(events: source)
     }
     

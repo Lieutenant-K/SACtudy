@@ -14,8 +14,8 @@ protocol LocationManager {
 
 extension LocationManager {
     
-    var currentCoordinate: CLLocationCoordinate2D? {
-        return location?.coordinate
+    var currentCoordinate: Coordinate? {
+        return location?.coordinate.toCoordinate
     }
     
 }

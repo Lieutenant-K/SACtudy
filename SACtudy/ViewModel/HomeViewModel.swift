@@ -46,18 +46,18 @@ class HomeViewModel: ViewModel, NetworkManager {
         let viewWillAppear: ControlEvent<Bool>
         let floatingButtonTap: ControlEvent<Void>
         let gpsButtonTap: ControlEvent<Void>
-        let regionDidChange: ControlEvent<CLLocationCoordinate2D>
+        let regionDidChange: ControlEvent<Coordinate>
     }
     struct Output {
         let myState = BehaviorRelay<QueueState>(value: .normal)
-        let mapCenter = BehaviorRelay<CLLocationCoordinate2D>(value: .defaultCoordinate)
+        let mapCenter = BehaviorRelay<Coordinate>(value: .defaultCoordinate)
         let nearUsers = PublishRelay<[NearUser]>()
         let error = PublishRelay<HomeError>()
-        let transition = PublishRelay<QueueState>()
+        let transition = PublishRelay<(state: QueueState, coordinate: Coordinate)>()
     }
     
     let fetchMyQueueState = PublishRelay<Void>()
-    let fetchNearUser = BehaviorRelay<CLLocationCoordinate2D>(value: .defaultCoordinate)
+    let fetchNearUser = BehaviorRelay<Coordinate>(value: .defaultCoordinate)
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         
@@ -115,17 +115,15 @@ class HomeViewModel: ViewModel, NetworkManager {
                 if let coordinate = model.locationManager.currentCoordinate {
                     return coordinate
                 }
-                return CLLocationCoordinate2D.defaultCoordinate
+                return Coordinate.defaultCoordinate
             }
             .debug()
             .bind(to: output.mapCenter)
             .disposed(by: disposeBag)
         
         input.floatingButtonTap
-            .withUnretained(self)
-            .map { model, _ in model.locationManager.location != nil }
-            .bind(with: self) { model, bool in
-                if bool { output.transition.accept(output.myState.value) }
+            .bind(with: self) { model, _ in
+                if let coordinate = model.locationManager.currentCoordinate { output.transition.accept((output.myState.value, coordinate)) }
                 else { output.error.accept(.disabledLocation) }
             }
             .disposed(by: disposeBag)
@@ -133,7 +131,7 @@ class HomeViewModel: ViewModel, NetworkManager {
         
         input.gpsButtonTap
             .bind(with: self) { model, _ in
-                if let coordinate = model.locationManager.location?.coordinate {
+                if let coordinate = model.locationManager.currentCoordinate {
                     output.mapCenter.accept(coordinate)
                     return
                 }
@@ -141,6 +139,7 @@ class HomeViewModel: ViewModel, NetworkManager {
             .disposed(by: disposeBag)
         
         input.regionDidChange
+            .map { Coordinate(latitude: $0.latitude, longitude: $0.longitude) }
             .debug()
             .bind(to: fetchNearUser)
             .disposed(by: disposeBag)

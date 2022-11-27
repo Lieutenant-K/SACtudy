@@ -73,6 +73,7 @@ class HomeViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         output.mapCenter
+            .map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
             .bind(to: rootView.mapView.rx.centerCoordinate)
             .disposed(by: disposeBag)
         

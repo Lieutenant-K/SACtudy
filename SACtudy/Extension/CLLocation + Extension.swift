@@ -9,7 +9,12 @@ import Foundation
 import CoreLocation
 
 extension CLLocationCoordinate2D {
+    
     static var defaultCoordinate: CLLocationCoordinate2D {
         return CLLocationCoordinate2D(latitude: 37.517819364682694, longitude: 126.88647317074734)
+    }
+    
+    var toCoordinate: Coordinate {
+        return Coordinate(latitude: self.latitude, longitude: self.longitude)
     }
 }
