@@ -33,6 +33,11 @@ class HomeViewController: BaseViewController {
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: true)
+    }
+    
     func binding() {
         
         let input = HomeViewModel.Input(
