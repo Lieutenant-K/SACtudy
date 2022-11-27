@@ -85,10 +85,11 @@ class HomeViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         output.transition
-            .bind(with: self) { vc, state in
-                switch state {
+            .bind(with: self) { vc, result in
+                switch result.state {
                 case .normal:
                     print("스터디 입력 화면")
+                    vc.transition(SearchViewController(coordinate: result.coordinate), isModal: false)
                 case .waitForMatch:
                     print("새싹 찾기 화면")
                 case .matched:
