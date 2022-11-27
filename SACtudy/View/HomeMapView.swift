@@ -13,10 +13,12 @@ final class HomeMapView: MKMapView {
     let annotationReuseIdentifier = "annotation"
 
     private func configureMapView() {
+        
+        cameraZoomRange = CameraZoomRange(minCenterCoordinateDistance: 400, maxCenterCoordinateDistance: 24000)
         isPitchEnabled = false
         isRotateEnabled = false
-        showsScale = false
-        centerCoordinate = .defaultCoordinate
+        region = MKCoordinateRegion(center: .defaultCoordinate, latitudinalMeters: 700, longitudinalMeters: 1400)
+//        centerCoordinate = .defaultCoordinate
         register(MKAnnotationView.self, forAnnotationViewWithReuseIdentifier: annotationReuseIdentifier)
     }
     
