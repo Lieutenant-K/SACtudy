@@ -68,4 +68,20 @@ extension ColorSet {
             imageColor: Asset.Colors.gray3.color)
     }
     
+    static var recommended: ColorSet {
+        ColorSet(
+            titleColor: Asset.Colors.error.color,
+            backgroundColor: Asset.Colors.white.color,
+            strokeColor: Asset.Colors.error.color,
+            imageColor: Asset.Colors.error.color)
+    }
+    
+    static var prefer: ColorSet {
+        ColorSet(
+            titleColor: Asset.Colors.green.color,
+            backgroundColor: Asset.Colors.white.color,
+            strokeColor: Asset.Colors.error.color,
+            imageColor: Asset.Colors.green.color)
+    }
+    
 }

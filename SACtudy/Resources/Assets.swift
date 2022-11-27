@@ -43,6 +43,10 @@ internal enum Asset {
   internal enum Images {
     internal static let antenna = ImageAsset(name: "antenna")
     internal static let arrow = ImageAsset(name: "arrow")
+    internal static let bagde = ImageAsset(name: "bagde")
+    internal static let bell = ImageAsset(name: "bell")
+    internal static let check = ImageAsset(name: "check")
+    internal static let closeSmall = ImageAsset(name: "close_small")
     internal static let ellipse = ImageAsset(name: "ellipse")
     internal static let faq = ImageAsset(name: "faq")
     internal static let filterControl = ImageAsset(name: "filter_control")
