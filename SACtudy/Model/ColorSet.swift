@@ -80,7 +80,7 @@ extension ColorSet {
         ColorSet(
             titleColor: Asset.Colors.green.color,
             backgroundColor: Asset.Colors.white.color,
-            strokeColor: Asset.Colors.error.color,
+            strokeColor: Asset.Colors.green.color,
             imageColor: Asset.Colors.green.color)
     }
     
