@@ -33,6 +33,11 @@ enum GenderFilter: Int {
     
 }
 
+enum HomeError: Error {
+    case disabledLocation
+    case network
+}
+
 class HomeViewModel: ViewModel, NetworkManager {
     
     let locationManager: LocationManager
@@ -47,7 +52,8 @@ class HomeViewModel: ViewModel, NetworkManager {
         let myState = BehaviorRelay<QueueState>(value: .normal)
         let mapCenter = BehaviorRelay<CLLocationCoordinate2D>(value: .defaultCoordinate)
         let nearUsers = PublishRelay<[NearUser]>()
-        let errorMessage = PublishRelay<String>()
+        let error = PublishRelay<HomeError>()
+        let transition = PublishRelay<QueueState>()
     }
     
     let fetchMyQueueState = PublishRelay<Void>()
@@ -72,7 +78,7 @@ class HomeViewModel: ViewModel, NetworkManager {
                 case .error(.tokenError):
                     model.fetchMyQueueState.accept(())
                 case .error(.network):
-                    output.errorMessage.accept(Constant.networkDisconnectMessage)
+                    output.error.accept(.network)
                 default:
                     print(result)
                 }
@@ -90,7 +96,7 @@ class HomeViewModel: ViewModel, NetworkManager {
                 case .error(.tokenError):
                     model.fetchNearUser.accept(model.fetchNearUser.value)
                 case .error(.network):
-                    output.errorMessage.accept(Constant.networkDisconnectMessage)
+                    output.error.accept(.network)
                 default:
                     print(result)
                 }
@@ -116,8 +122,14 @@ class HomeViewModel: ViewModel, NetworkManager {
             .disposed(by: disposeBag)
         
         input.floatingButtonTap
-            .bind(to: fetchMyQueueState)
+            .withUnretained(self)
+            .map { model, _ in model.locationManager.location != nil }
+            .bind(with: self) { model, bool in
+                if bool { output.transition.accept(output.myState.value) }
+                else { output.error.accept(.disabledLocation) }
+            }
             .disposed(by: disposeBag)
+        
         
         input.gpsButtonTap
             .bind(with: self) { model, _ in
@@ -125,7 +137,7 @@ class HomeViewModel: ViewModel, NetworkManager {
                     output.mapCenter.accept(coordinate)
                     return
                 }
-                output.errorMessage.accept("위치 서비스 사용 불가") }
+                output.error.accept(.disabledLocation) }
             .disposed(by: disposeBag)
         
         input.regionDidChange

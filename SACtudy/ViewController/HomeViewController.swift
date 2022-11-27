@@ -44,9 +44,23 @@ class HomeViewController: BaseViewController {
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
         
-        output.errorMessage
-            .bind(with: self) { vc, message in
-                vc.view.makeToast(message) }
+        output.error
+            .bind(with: self) { vc, error in
+                switch error {
+                case .network:
+                    vc.view.makeToast(Constant.networkDisconnectMessage)
+                case .disabledLocation:
+                    let action = UIAlertAction(title: "확인", style: .default) { _ in
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    let alert = UIAlertController(title: "위치 서비스 사용 불가", message: nil, preferredStyle: .alert)
+                    alert.addAction(action)
+                    
+                    vc.present(alert, animated: true)
+                }
+            }
             .disposed(by: disposeBag)
         
         output.myState
@@ -64,9 +78,8 @@ class HomeViewController: BaseViewController {
             .bind(to: rootView.mapView.rx.currentAnnotations)
             .disposed(by: disposeBag)
         
-        rootView.floatingButton.rx.tap
-            .map { output.myState.value }
-            .bind { state in
+        output.transition
+            .bind(with: self) { vc, state in
                 switch state {
                 case .normal:
                     print("스터디 입력 화면")
@@ -98,28 +111,15 @@ extension HomeViewController: MKMapViewDelegate {
         
         let view = mapView.dequeueReusableAnnotationView(withIdentifier: rootView.mapView.annotationReuseIdentifier, for: annotation)
 //            let view = MKAnnotationView()
+        
         if let annotation = annotation as? SeSACAnnotation {
             view.image = Asset.Images.sesacFace(number: annotation.sesacType)?.image
-            
-        } else {
-            view.image = Asset.Images.mapMarker.image
+            view.frame.size = CGSize(width: 80, height: 80)
+            view.centerOffset = CGPoint(x: 0, y: -20)
         }
         
         return view
     }
-    
-//    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-////        print(#function)
-//
-//        let coordinate = rootView.mapView.convert(rootView.center, toCoordinateFrom: rootView)
-//
-//
-////        print("중앙 핀이 가르키는 좌표: \(coordinate)")
-//
-////        print("중앙 핀 위치: \(rootView.center)")
-////        print("맵 뷰 중앙 위치: \(mapView.center)")
-//
-//    }
     
     func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
         
@@ -128,7 +128,6 @@ extension HomeViewController: MKMapViewDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             mapView.isUserInteractionEnabled = true
         }
-        
     }
     
 }
