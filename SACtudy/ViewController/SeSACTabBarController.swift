@@ -44,6 +44,7 @@ final class SeSACTabBarController: UITabBarController {
         let appear = UITabBarAppearance()
         appear.configureWithDefaultBackground()
         appear.backgroundColor = .white
+        appear.shadowColor = .black.withAlphaComponent(0.04)
         appear.stackedLayoutAppearance = itemAppear
         
         
