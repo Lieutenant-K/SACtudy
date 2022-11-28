@@ -32,7 +32,6 @@ class SearchViewModel: ViewModel, NetworkManager {
     }
     
     let coordinate: Coordinate
-    var prefer = Set<String>()
     
     init(coordinate: Coordinate) {
         self.coordinate = coordinate
@@ -41,6 +40,7 @@ class SearchViewModel: ViewModel, NetworkManager {
     struct Input {
         let searchButtonTap: ControlEvent<Void>
         let modelSelected: ControlEvent<SectionItem>
+        let searchResult: ControlEvent<String?>
     }
     
     struct Output {
@@ -75,6 +75,27 @@ class SearchViewModel: ViewModel, NetworkManager {
             }
             .disposed(by: disposeBag)
         
+        input.searchResult
+            .compactMap { $0 }
+            .map { Set($0.split(separator: " ").map{ String($0) }) }
+            .bind { strings in
+                for str in strings {
+                    if prefer.value.contains(str) {
+                        output.errorMessage.accept(.alreadyExist)
+                        return
+                    } else if prefer.value.count + strings.count > 8 {
+                        output.errorMessage.accept(.overMaxCount)
+                        return
+                    } else if str.count < 1 || str.count > 8 {
+                        output.errorMessage.accept(.overMaxLength)
+                        return
+                    }
+                }
+                prefer.accept(prefer.value.union(strings))
+            }
+            .disposed(by: disposeBag)
+            
+        
         input.modelSelected
             .bind { item in
                 switch item {
@@ -92,14 +113,14 @@ class SearchViewModel: ViewModel, NetworkManager {
             .disposed(by: disposeBag)
         
         prefer
-            .map{ $0.map { SectionItem.preferSectionItem(tag: $0, id: UUID()) } }
             .map { item in
-                output.tags.value.map { section in
+                let preferItems = item.map { SectionItem.preferSectionItem(tag: $0, id: UUID()) }
+                return output.tags.value.map { section in
                     switch section {
                     case .around:
                         return section
                     case let .prefer(title, _):
-                        return Section.prefer(title: title, items: item)
+                        return Section.prefer(title: title, items: preferItems)
                     }
                 }
             }

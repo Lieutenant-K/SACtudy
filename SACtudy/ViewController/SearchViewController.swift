@@ -13,12 +13,31 @@ import RxDataSources
 class SearchViewController: BaseViewController {
     
     let rootView = SearchView()
+    let searchBar = UISearchBar().then {
+        
+        let font: FontSet = .title4
+        let attr: [NSAttributedString.Key:Any] = [
+            .font: font.font,
+            .baselineOffset: font.baselineOffset,
+            .paragraphStyle: font.paragraph,
+            .foregroundColor: Asset.Colors.black.color
+        ]
+
+        $0.searchTextField.attributedPlaceholder = NSAttributedString(text: "띄어쓰기로 복수 입력이 가능해요", font: font, color: Asset.Colors.gray6.color)
+        $0.searchTextField.defaultTextAttributes = attr
+        $0.searchTextField.textAlignment = .left
+        
+    }
     
     let viewModel: SearchViewModel
     
     init(coordinate: Coordinate) {
         viewModel = SearchViewModel(coordinate: coordinate)
         super.init(nibName: nil, bundle: nil)
+    }
+    
+    deinit {
+        removeNotificationObserver()
     }
     
     override func loadView() {
@@ -28,6 +47,7 @@ class SearchViewController: BaseViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         binding()
+        addNotificationObserver()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -39,21 +59,8 @@ class SearchViewController: BaseViewController {
     override func configureNavigationItem() {
         super.configureNavigationItem()
         
-        navigationItem.titleView = UISearchBar().then {
-            
-            let font: FontSet = .title4
-            let attr: [NSAttributedString.Key:Any] = [
-                .font: font.font,
-                .baselineOffset: font.baselineOffset,
-                .paragraphStyle: font.paragraph,
-                .foregroundColor: Asset.Colors.black.color
-            ]
-    
-            $0.searchTextField.attributedPlaceholder = NSAttributedString(text: "띄어쓰기로 복수 입력이 가능해요", font: font, color: Asset.Colors.gray6.color)
-            $0.searchTextField.defaultTextAttributes = attr
-            $0.searchTextField.textAlignment = .left
-            
-        }
+        navigationItem.titleView = searchBar
+        
         
     }
     
@@ -61,7 +68,8 @@ class SearchViewController: BaseViewController {
         
         let input = SearchViewModel.Input(
             searchButtonTap: rootView.searchButton.rx.tap,
-            modelSelected: rootView.tagCollectionView.rx.modelSelected(SearchViewModel.SectionItem.self)
+            modelSelected: rootView.tagCollectionView.rx.modelSelected(SearchViewModel.SectionItem.self),
+            searchResult: searchBar.rx.searchResult
         )
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
@@ -76,6 +84,7 @@ class SearchViewController: BaseViewController {
             .bind(with: self) { vc, error in
                 vc.view.makeToast(error.message) }
             .disposed(by: disposeBag)
+        
         
     }
     
@@ -122,9 +131,46 @@ extension SearchViewController {
             
         }
         
-        
+    }
+}
 
-        
+extension SearchViewController {
+    
+    func addNotificationObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    func removeNotificationObserver() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         
     }
+    
+    @objc func keyboardWillShow(_ notification: NSNotification) {
+
+        guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect, let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+            
+        
+        
+        UIView.animate(withDuration: duration, delay: 0, options: [.curveEaseIn]) { [weak self] in
+            self?.rootView.animateViewUp(keyboardHeight: frame.height)
+            self?.view.layoutIfNeeded()
+        }
+        
+    }
+
+    @objc func keyboardWillHide(_ notification: NSNotification) {
+//        print(#function, self.description)
+
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
+
+        UIView.animate(withDuration: duration) { [weak self] in
+            self?.rootView.animateViewDown()
+            self?.view.layoutIfNeeded()
+        }
+
+    }
+    
+    
 }

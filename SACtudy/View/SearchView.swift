@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class SearchView: UIView {
 
@@ -18,16 +19,50 @@ class SearchView: UIView {
     
     let searchButton = RoundedButton(title: "새싹 찾기", fontSet: .body3, colorSet: .fill, height: .h48)
     
+    var buttonBottomConstraint: Constraint?
+    var buttonLeadingConstraint: Constraint?
+    var buttonTrailingConstraint: Constraint?
+    
     private func configureSubviews() {
         
         addSubview(tagCollectionView)
-        tagCollectionView.snp.makeConstraints{ $0.edges.equalToSuperview() }
-        
         addSubview(searchButton)
-        searchButton.snp.makeConstraints { make in
-            make.leading.bottom.trailing.equalTo(safeAreaLayoutGuide)
+        
+        tagCollectionView.snp.makeConstraints{ $0.leading.top.trailing.equalTo(safeAreaLayoutGuide)
+            $0.bottom.equalTo(searchButton.snp.top).offset(-8)
+        }
+        
+        searchButton.snp.makeConstraints { [weak self] make in
+            self?.buttonLeadingConstraint = make.leading.equalTo(safeAreaLayoutGuide).inset(16).constraint
+            self?.buttonTrailingConstraint = make.trailing.equalTo(safeAreaLayoutGuide).inset(16).constraint
+            self?.buttonBottomConstraint = make.bottom.equalTo(safeAreaLayoutGuide).offset(0).constraint
         }
 
+    }
+    
+    func animateViewUp(keyboardHeight: CGFloat) {
+        
+        let contentHeight = tagCollectionView.contentSize.height + tagCollectionView.contentInset.top
+        
+        let visibleAreaHeight = tagCollectionView.frame.height + safeAreaInsets.bottom - keyboardHeight
+        
+        if contentHeight > visibleAreaHeight {
+            tagCollectionView.contentOffset.y += contentHeight - visibleAreaHeight
+
+        }
+        
+        let buttonHeight = keyboardHeight - safeAreaInsets.bottom
+        buttonBottomConstraint?.layoutConstraints.first?.constant = -buttonHeight
+        buttonLeadingConstraint?.layoutConstraints.first?.constant = 0
+        buttonTrailingConstraint?.layoutConstraints.first?.constant = 0
+        searchButton.configuration?.background.cornerRadius = 0
+    }
+    
+    func animateViewDown() {
+        buttonBottomConstraint?.layoutConstraints.first?.constant = -0
+        buttonLeadingConstraint?.layoutConstraints.first?.constant = 16
+        buttonTrailingConstraint?.layoutConstraints.first?.constant = -16
+        searchButton.configuration?.background.cornerRadius = 8
     }
     
     override init(frame: CGRect) {
