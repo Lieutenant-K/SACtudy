@@ -88,7 +88,7 @@ class HomeViewModel: ViewModel, NetworkManager {
         fetchNearUser
             .withUnretained(self)
             .flatMapLatest { model, coordinate in
-                model.request(router: .queue(.search(lat: coordinate.latitude, long: coordinate.longitude)), type: UserSearchResult.self) }
+                model.request(router: .queue(.searchNearStudy(coordinate: coordinate)), type: UserSearchResult.self) }
             .subscribe(with: self) { model, result in
                 switch result {
                 case let .success(searchResult):

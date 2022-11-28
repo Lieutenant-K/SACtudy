@@ -71,7 +71,8 @@ enum UserURI: URI {
 enum QueueURI: URI {
     
     case myQueueState
-    case search(lat: Double, long: Double)
+    case searchNearStudy(coordinate: Coordinate)
+    case requestMyStudy(data: StudyRequestModel)
     
     var baseURI: String {
         return "/queue"
@@ -81,8 +82,10 @@ enum QueueURI: URI {
         switch self {
         case .myQueueState:
             return "/myQueueState"
-        case .search:
+        case .searchNearStudy:
             return "/search"
+        default:
+            return ""
         }
     }
     
@@ -90,7 +93,7 @@ enum QueueURI: URI {
         switch self {
         case .myQueueState:
             return .get
-        case .search:
+        case .searchNearStudy, .requestMyStudy:
             return .post
         }
     }
@@ -98,8 +101,10 @@ enum QueueURI: URI {
     
     var parameters: Parameters? {
         switch self {
-        case let .search(lat, long):
-            return ["lat": lat, "long": long]
+        case let .searchNearStudy(coordinate):
+            return ["lat": coordinate.latitude, "long": coordinate.longitude]
+        case let .requestMyStudy(data):
+            return ["lat":data.coordinate.latitude, "long": data.coordinate.longitude, "studylist": data.studyList]
         default:
             return nil
         }
@@ -160,7 +165,12 @@ enum Router: URLRequestConvertible {
         urlRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         
         if let parameters = parameters {
-            return try URLEncoding.default.encode(urlRequest, with: parameters)
+
+            return try URLEncoding(arrayEncoding: .noBrackets).encode(urlRequest, with: parameters)
+            
+//            return try URLEncoding.default.encode(urlRequest, with: parameters)
+            
+
         }
 
         return urlRequest
