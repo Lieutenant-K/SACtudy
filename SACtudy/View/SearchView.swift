@@ -47,7 +47,7 @@ extension SearchView {
         
         let layout = UICollectionViewCompositionalLayout { sectionIndex, environmnet in
                         
-            let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(100), heightDimension: .estimated(32))
+            let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(200), heightDimension: .estimated(32))
             
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
             

@@ -61,7 +61,7 @@ class SearchViewController: BaseViewController {
         
         let input = SearchViewModel.Input(
             searchButtonTap: rootView.searchButton.rx.tap,
-            viewDidAppear: self.rx.viewDidAppear
+            modelSelected: rootView.tagCollectionView.rx.modelSelected(SearchViewModel.SectionItem.self)
         )
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
@@ -72,6 +72,10 @@ class SearchViewController: BaseViewController {
             .bind(to: rootView.tagCollectionView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
         
+        output.errorMessage
+            .bind(with: self) { vc, error in
+                vc.view.makeToast(error.message) }
+            .disposed(by: disposeBag)
         
     }
     
@@ -86,9 +90,9 @@ extension SearchViewController {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RoundedButtonCell.reuseIdentifier, for: indexPath) as? RoundedButtonCell else { return UICollectionViewCell() }
             
             switch item {
-            case let .aroundSectionItem(tag, isRecommended):
+            case let .aroundSectionItem(tag, isRecommended, _):
                 cell.button.configureButton(text: tag, font: .title4, color: isRecommended ? .recommended : .inactive)
-            case let .preferSectionItem(tag):
+            case let .preferSectionItem(tag, _):
                 cell.button.configureButton(text: tag, font: .title4, color: .prefer)
                 cell.button.configuration?.image = Asset.Images.closeSmall.image.withRenderingMode(.alwaysTemplate)
                 cell.button.configuration?.imagePadding = 4

@@ -14,7 +14,7 @@ class RoundedButtonCell: UICollectionViewCell {
     private func configureButton() {
         
         contentView.addSubview(button)
-        
+        button.isUserInteractionEnabled = false
         button.snp.makeConstraints { $0.edges.equalToSuperview() }
         
     }
