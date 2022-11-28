@@ -85,11 +85,11 @@ class HomeViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         output.transition
-            .bind(with: self) { vc, result in
-                switch result.state {
+            .bind(with: self) { vc, state in
+                switch state {
                 case .normal:
                     print("스터디 입력 화면")
-                    vc.transition(SearchViewController(coordinate: result.coordinate), isModal: false)
+                    vc.transition(SearchViewController(coordinate: vc.rootView.mapView.centerCoordinate.toCoordinate), isModal: false)
                 case .waitForMatch:
                     print("새싹 찾기 화면")
                 case .matched:
@@ -135,6 +135,21 @@ extension HomeViewController: MKMapViewDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             mapView.isUserInteractionEnabled = true
         }
+    }
+    
+    func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+        
+        let coordinate1 = mapView.convert(CGPoint(x: 0, y: mapView.frame.height/2), toCoordinateFrom: mapView)
+        
+        let coordinate2 = mapView.convert(CGPoint(x: mapView.frame.width/2, y: 0), toCoordinateFrom: mapView)
+        
+        let center = CLLocation(latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude)
+        
+        print(center.distance(from: CLLocation(latitude: coordinate1.latitude, longitude: coordinate1.longitude)))
+        
+        print(center.distance(from: CLLocation(latitude: coordinate2.latitude, longitude: coordinate2.longitude)))
+        
+        
     }
     
 }

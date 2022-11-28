@@ -53,7 +53,7 @@ class HomeViewModel: ViewModel, NetworkManager {
         let mapCenter = BehaviorRelay<Coordinate>(value: .defaultCoordinate)
         let nearUsers = PublishRelay<[NearUser]>()
         let error = PublishRelay<HomeError>()
-        let transition = PublishRelay<(state: QueueState, coordinate: Coordinate)>()
+        let transition = PublishRelay<QueueState>()
     }
     
     let fetchMyQueueState = PublishRelay<Void>()
@@ -123,7 +123,7 @@ class HomeViewModel: ViewModel, NetworkManager {
         
         input.floatingButtonTap
             .bind(with: self) { model, _ in
-                if let coordinate = model.locationManager.currentCoordinate { output.transition.accept((output.myState.value, coordinate)) }
+                if let _ = model.locationManager.currentCoordinate { output.transition.accept(output.myState.value) }
                 else { output.error.accept(.disabledLocation) }
             }
             .disposed(by: disposeBag)

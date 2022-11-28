@@ -46,7 +46,7 @@ class SearchViewController: BaseViewController {
                 .font: font.font,
                 .baselineOffset: font.baselineOffset,
                 .paragraphStyle: font.paragraph,
-                .foregroundColor: Asset.Colors.black.color.cgColor
+                .foregroundColor: Asset.Colors.black.color
             ]
     
             $0.searchTextField.attributedPlaceholder = NSAttributedString(text: "띄어쓰기로 복수 입력이 가능해요", font: font, color: Asset.Colors.gray6.color)
