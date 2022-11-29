@@ -12,12 +12,22 @@ import RxDataSources
 
 class SearchViewModel: ViewModel, NetworkManager {
     
-    enum SearchError {
+    enum SearchResult: Int {
         
-        case network, overMaxLength, overMaxCount, alreadyExist
+        case success = 200
+        case reportedUser = 201
+        case cancelPenalty1 = 203
+        case cancelPenalty2 = 204
+        case cancelPenalty3 = 205
+        case network
+        case overMaxLength
+        case overMaxCount
+        case alreadyExist
         
-        var message: String {
+        var message: String? {
             switch self {
+            case .success:
+                return nil
             case .network:
                 return Constant.networkDisconnectMessage
             case .overMaxCount:
@@ -26,10 +36,18 @@ class SearchViewModel: ViewModel, NetworkManager {
                 return "최소 한 자 이상, 최대 8글자까지 작성 가능합니다"
             case .alreadyExist:
                 return "이미 등록된 스터디입니다"
+            case .reportedUser:
+                return "신고가 누적되어 이용하실 수 없습니다"
+            case .cancelPenalty1:
+                return "스터디 취소 패널티로, 1분동안 이용하실 수 없습니다"
+            case .cancelPenalty2:
+                return "스터디 취소 패널티로, 2분동안 이용하실 수 없습니다"
+            case .cancelPenalty3:
+                return "스터디 취소 패널티로, 3분동안 이용하실 수 없습니다"
             }
         }
-        
     }
+
     
     let coordinate: Coordinate
     
@@ -45,7 +63,7 @@ class SearchViewModel: ViewModel, NetworkManager {
     
     struct Output {
         let tags = BehaviorRelay<[Section]>(value: [])
-        let errorMessage = PublishRelay<SearchError>()
+        let result = PublishRelay<SearchResult>()
     }
     
     
@@ -54,12 +72,13 @@ class SearchViewModel: ViewModel, NetworkManager {
         let output = Output()
         
         let fetchNearUser = BehaviorRelay<Coordinate>(value: coordinate)
+        let searchStudy = BehaviorRelay<StudyRequestModel?>(value: nil)
         let prefer = BehaviorRelay<Set<String>>(value: Set())
         
         fetchNearUser
             .withUnretained(self)
             .flatMapLatest { model, coordinate in
-                model.request(router: .queue(.search(lat: coordinate.latitude, long: coordinate.longitude)), type: UserSearchResult.self) }
+                model.request(router: .queue(.searchNearStudy(coordinate: coordinate)), type: UserSearchResult.self) }
             .subscribe(with: self) { model, result in
                 switch result {
                 case let .success(searchResult):
@@ -68,11 +87,44 @@ class SearchViewModel: ViewModel, NetworkManager {
                 case .error(.tokenError):
                     fetchNearUser.accept(fetchNearUser.value)
                 case .error(.network):
-                    output.errorMessage.accept(.network)
+                    output.result.accept(.network)
                 default:
                     print(result)
                 }
             }
+            .disposed(by: disposeBag)
+        
+        searchStudy
+            .compactMap{$0}
+            .withUnretained(self)
+            .flatMapLatest { model, data in
+                model.request(router: .queue(.requestMyStudy(data: data)), type: Empty.self) }
+            .subscribe(with: self) { model, result in
+                switch result {
+                case .success:
+                    output.result.accept(.success)
+                case .error(.tokenError):
+                    searchStudy.accept(searchStudy.value)
+                case .error(.network):
+                    output.result.accept(.network)
+                case let .status(code):
+                    if let searchResult = SearchResult(rawValue: code) {
+                        output.result.accept(searchResult) }
+                default:
+                    print(result)
+                }
+            }
+            .disposed(by: disposeBag)
+        
+        input.searchButtonTap
+            .withUnretained(self)
+            .map { model, _ in
+                let list = prefer.value.map{$0}
+                return StudyRequestModel(
+                    coordinate: model.coordinate,
+                    studyList: list.isEmpty ? ["anything"] : list
+                )}
+            .bind(to: searchStudy)
             .disposed(by: disposeBag)
         
         input.searchResult
@@ -81,31 +133,31 @@ class SearchViewModel: ViewModel, NetworkManager {
             .bind { strings in
                 for str in strings {
                     if prefer.value.contains(str) {
-                        output.errorMessage.accept(.alreadyExist)
+                        output.result.accept(.alreadyExist)
                         return
                     } else if prefer.value.count + strings.count > 8 {
-                        output.errorMessage.accept(.overMaxCount)
+                        output.result.accept(.overMaxCount)
                         return
                     } else if str.count < 1 || str.count > 8 {
-                        output.errorMessage.accept(.overMaxLength)
+                        output.result.accept(.overMaxLength)
                         return
                     }
                 }
                 prefer.accept(prefer.value.union(strings))
             }
             .disposed(by: disposeBag)
-            
+        
         
         input.modelSelected
             .bind { item in
                 switch item {
                 case let .aroundSectionItem(tag, _, _):
                     if prefer.value.contains(tag) {
-                        output.errorMessage.accept(.alreadyExist) }
+                        output.result.accept(.alreadyExist) }
                     else if prefer.value.count < 8 {
                         prefer.accept(prefer.value.union([tag])) }
                     else {
-                        output.errorMessage.accept(.overMaxCount) }
+                        output.result.accept(.overMaxCount) }
                 case let .preferSectionItem(tag, _):
                     prefer.accept(prefer.value.subtracting([tag]))
                 }
@@ -127,7 +179,6 @@ class SearchViewModel: ViewModel, NetworkManager {
             .bind(to: output.tags)
             .disposed(by: disposeBag)
         
-       
         
         return output
         
@@ -197,13 +248,13 @@ extension SearchViewModel {
             .map{ $0.studylist }
             .reduce(Set<String>()) { partialResult, studyList in
                 partialResult.union(Set(studyList))
-        }
+            }
         
         let study2 = data.fromQueueDBRequested
             .map{ $0.studylist }
             .reduce(Set<String>()) { partialResult, studyList in
                 partialResult.union(Set(studyList))
-        }
+            }
         
         let studyList = study1.union(study2).subtracting(recommend)
         

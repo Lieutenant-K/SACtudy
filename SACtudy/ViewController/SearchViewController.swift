@@ -80,9 +80,12 @@ class SearchViewController: BaseViewController {
             .bind(to: rootView.tagCollectionView.rx.items(dataSource: dataSource))
             .disposed(by: disposeBag)
         
-        output.errorMessage
-            .bind(with: self) { vc, error in
-                vc.view.makeToast(error.message) }
+        output.result
+            .bind(with: self) { vc, result in
+                if result == .success {
+                    print(result) }
+                else { vc.view.makeToast(result.message) }
+            }
             .disposed(by: disposeBag)
         
         
