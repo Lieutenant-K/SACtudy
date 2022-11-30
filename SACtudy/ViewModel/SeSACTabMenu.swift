@@ -8,19 +8,23 @@
 import UIKit
 import Then
 import SnapKit
+import RxSwift
+import RxCocoa
 
 final class SeSACTabMenu: UIView {
     
+    var currentIndex = 0
     var items: [TabMenuItem]
-    private var buttons = [UIButton]()
-    private let container = UIView()
+    fileprivate var buttons = [UIButton]()
+    fileprivate let container = UIView()
+    private let disposeBag = DisposeBag()
 
     private func configureView() {
         
         buttons = items.enumerated().map { (index, item) in
             let button = createButton(title: item.title)
             button.tag = index
-            button.addTarget(self, action: #selector(switchView(_:)), for: .touchUpInside)
+//            button.addTarget(self, action: #selector(switchView(_:)), for: .touchUpInside)
             return button
         }
         
@@ -47,9 +51,16 @@ final class SeSACTabMenu: UIView {
             $0.view.snp.makeConstraints { $0.edges.equalToSuperview() }
         }
         
-        if let first = buttons.first {
-            switchView(first)
-        }
+        self.rx.menuTap
+            .startWith(0)
+            .bind(to: self.rx.currentMenu)
+            .disposed(by: disposeBag)
+        
+
+        
+//        if let first = buttons.first {
+//            switchView(first)
+//        }
         
     }
     
@@ -100,6 +111,7 @@ final class SeSACTabMenu: UIView {
     @objc func switchView(_ sender: UIButton) {
         buttons.forEach { $0.isSelected = $0.tag == sender.tag }
         container.bringSubviewToFront(items[sender.tag].view)
+        
     }
     
     init(items: [TabMenuItem]) {
@@ -113,4 +125,22 @@ final class SeSACTabMenu: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+}
+
+extension Reactive where Base: SeSACTabMenu {
+    var menuTap: ControlEvent<Int> {
+        let taps = base.buttons.map { button in
+            return button.rx.tap.map{ button.tag }
+        }
+        return ControlEvent(events: Observable.merge(taps))
+    }
+    
+    var currentMenu: Binder<Int> {
+        return Binder(base) { base, value in
+            base.container.bringSubviewToFront(base.items[value].view)
+            base.currentIndex = value
+            base.buttons.enumerated().forEach { (index, button) in
+                button.isSelected = index == value }
+        }
+    }
 }
