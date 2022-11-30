@@ -28,12 +28,14 @@ class InspectUserViewModel: ViewModel, NetworkManager {
         let deleteStudyButtonTap: ControlEvent<Void>
         let refreshButtonTap: ControlEvent<Void>
         let nearUserItemSelected: ControlEvent<IndexPath>
+        let menuTap: ControlEvent<Int>
     }
     
     struct Output {
         let nearUserList = BehaviorRelay<[Section]>(value: [])
         let requestUserList = BehaviorRelay<[Section]>(value: [])
         let deleteResult = PublishRelay<DeleteResult>()
+        let isCurrentEmpty = PublishRelay<Bool>()
     }
     
     
@@ -104,6 +106,13 @@ class InspectUserViewModel: ViewModel, NetworkManager {
                 } else { return nil }
             }
             .bind(to: output.nearUserList)
+            .disposed(by: disposeBag)
+        
+        input.menuTap
+            .compactMap {
+                $0 == 0 ? output.nearUserList.value.first?.items.isEmpty : output.requestUserList.value.first?.items.isEmpty
+            }
+            .bind(to: output.isCurrentEmpty)
             .disposed(by: disposeBag)
             
         

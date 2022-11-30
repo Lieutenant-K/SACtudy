@@ -22,11 +22,13 @@ class InspectUserView: UIView {
         tabMenu.snp.makeConstraints{$0.edges.equalTo(safeAreaLayoutGuide)}
         
         addSubview(changeStudyButton)
+        changeStudyButton.isHidden = true
         changeStudyButton.snp.makeConstraints { make in
             make.leading.bottom.equalTo(safeAreaLayoutGuide).inset(16)
         }
         
         addSubview(refreshButton)
+        refreshButton.isHidden = true
         refreshButton.tintColor = Asset.Colors.green.color
         refreshButton.layer.borderColor = refreshButton.tintColor.cgColor
         refreshButton.layer.cornerRadius = 8

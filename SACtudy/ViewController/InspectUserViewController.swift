@@ -45,11 +45,6 @@ class InspectUserViewController: BaseViewController {
         navigationItem.rightBarButtonItem = deleteStudyButton
         navigationItem.leftBarButtonItem = backButton
     }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        print(rootView.nearUserCollection.contentSize.height)
-    }
 
 }
 
@@ -60,7 +55,8 @@ extension InspectUserViewController {
         let input = InspectUserViewModel.Input(
             deleteStudyButtonTap: deleteStudyButton.rx.tap,
             refreshButtonTap: rootView.refreshButton.rx.tap,
-            nearUserItemSelected:  rootView.nearUserCollection.rx.itemSelected
+            nearUserItemSelected:  rootView.nearUserCollection.rx.itemSelected,
+            menuTap: rootView.tabMenu.rx.menuTap
         )
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
@@ -74,8 +70,35 @@ extension InspectUserViewController {
             .bind(to: rootView.nearUserCollection.rx.items(dataSource: createDataSource()))
             .disposed(by: disposeBag)
         
+        output.nearUserList
+            .withUnretained(self)
+            .compactMap { vc, section in
+                if vc.rootView.tabMenu.currentIndex == 0 {
+                    return section.first?.items.isEmpty
+                }
+                return nil
+            }
+            .bind(to: output.isCurrentEmpty)
+            .disposed(by: disposeBag)
+        
+        output.requestUserList
+            .withUnretained(self)
+            .compactMap { vc, section in
+                if vc.rootView.tabMenu.currentIndex == 1 {
+                    return section.first?.items.isEmpty
+                }
+                return nil
+            }
+            .bind(to: output.isCurrentEmpty)
+            .disposed(by: disposeBag)
+        
         output.requestUserList
             .bind(to: rootView.requestUserCollection.rx.items(dataSource: createDataSource()))
+            .disposed(by: disposeBag)
+        
+        output.isCurrentEmpty
+            .map{!$0}
+            .bind(to: rootView.refreshButton.rx.isHidden, rootView.changeStudyButton.rx.isHidden)
             .disposed(by: disposeBag)
         
         
@@ -107,30 +130,10 @@ extension InspectUserViewController {
             
             
             cell.inputData(user: item)
-//            cell.expandButton.tag = indexPath.row
-//            cell.expandButton.addTarget(self, action: #selector(self.touchExpandButton(_:)), for: .touchUpInside)
             
             return cell
             
         }
     }
-    
-//    @objc func touchExpandButton(_ sender: UIButton){
-//        if let cell = rootView.nearUserCollection.cellForItem(at: IndexPath(row: sender.tag, section: 0)) as? UserCardCell {
-//
-////            UIView.animate(withDuration: 0.3) { [weak self] in
-//                cell.userCardView.titleCollection.isHidden.toggle()
-//                cell.userCardView.reviewContainer.isHidden.toggle()
-////                self?.rootView.nearUserCollection
-////                self?.rootView.nearUserCollection.layoutIfNeeded()
-////            }
-//
-//            if let imageView = cell.expandButton.imageView {
-//                imageView.transform = imageView.transform.rotated(by: .pi)
-//            }
-//
-//            rootView.nearUserCollection.reloadData()
-//        }
-//    }
     
 }
