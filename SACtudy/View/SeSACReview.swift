@@ -34,6 +34,7 @@ class SeSACReview: UIView {
         }
 
         reviewLabel.textAlignment = .left
+        reviewLabel.numberOfLines = 0
         
     }
     

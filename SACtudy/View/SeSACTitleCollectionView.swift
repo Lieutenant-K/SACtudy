@@ -14,7 +14,6 @@ class SeSACTitleCollectionView: UICollectionView {
     
     override var contentSize: CGSize {
         didSet {
-            print(contentSize)
             if contentSize.height > 0 {
                 heightConstraint?.update(offset: contentSize.height)
             }
@@ -55,7 +54,7 @@ class SeSACTitleCollectionView: UICollectionView {
         isScrollEnabled = false
         
         self.snp.makeConstraints { make in
-            self.heightConstraint = make.height.equalTo(1000).priority(.high).constraint
+            self.heightConstraint = make.height.equalTo(100).priority(.required).constraint
         }
         
     }

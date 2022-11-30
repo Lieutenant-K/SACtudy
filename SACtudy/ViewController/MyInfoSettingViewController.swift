@@ -136,7 +136,7 @@ class MyInfoSettingViewController: BaseViewController {
 
 extension MyInfoSettingViewController {
     
-    func createDataSource() -> RxCollectionViewSectionedReloadDataSource<MyInfoSettingViewModel.Section> {
+    func createDataSource() -> RxCollectionViewSectionedReloadDataSource<Reputation> {
         
         return RxCollectionViewSectionedReloadDataSource(configureCell: { dataSource, collectionView, indexPath, item in
             

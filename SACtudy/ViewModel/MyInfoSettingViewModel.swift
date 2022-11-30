@@ -32,7 +32,7 @@ class MyInfoSettingViewModel {
         let study = BehaviorRelay<String?>(value: nil)
         let searchable = BehaviorRelay<Bool?>(value: nil)
         let ageRange = BehaviorRelay<[CGFloat]?>(value: nil)
-        let sesacTitles = PublishRelay<[Section]>()
+        let sesacTitles = PublishRelay<[Reputation]>()
         let updateResult = PublishRelay<UserRepository.UpdateResult>()
         // 정보 최종 저장
     }
@@ -142,39 +142,17 @@ class MyInfoSettingViewModel {
 
 extension MyInfoSettingViewModel {
     
-    struct Item {
-        
-        let title: String
-        let count: Int
-        
-    }
-    
-    struct Section: SectionModelType {
-        
-        var items: [Item]
-        
-        init(items: [Item]) {
-            self.items = items
-        }
-        
-        init(original: MyInfoSettingViewModel.Section, items: [Item]) {
-            self = original
-            self.items = items
-        }
-        
-    }
-    
-    private func createSeSACTitleSection(reputation: [Int]) -> [Section] {
+    private func createSeSACTitleSection(reputation: [Int]) -> [Reputation] {
         
         let items = reputation.enumerated().compactMap { (index, value) in
             if let title = SeSACTitle(rawValue: index)?.title {
-                return Item(title: title, count: value)
+                return ReputationItem(title: title, count: value)
             } else {
                 return nil
             }
         }
         
-        return [Section(items: items)]
+        return [Reputation(items: items)]
         
     }
     
