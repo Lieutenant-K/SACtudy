@@ -73,6 +73,7 @@ enum QueueURI: URI {
     case myQueueState
     case searchNearStudy(coordinate: Coordinate)
     case requestMyStudy(data: StudyRequestModel)
+    case deleteMyStudy
     
     var baseURI: String {
         return "/queue"
@@ -95,6 +96,8 @@ enum QueueURI: URI {
             return .get
         case .searchNearStudy, .requestMyStudy:
             return .post
+        case .deleteMyStudy:
+            return .delete
         }
     }
     
