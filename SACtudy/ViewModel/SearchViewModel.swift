@@ -12,9 +12,9 @@ import RxDataSources
 
 class SearchViewModel: ViewModel, NetworkManager {
     
-    enum SearchResult: Int {
+    enum SearchError: Int, Error {
         
-        case success = 200
+//        case success = 200
         case reportedUser = 201
         case cancelPenalty1 = 203
         case cancelPenalty2 = 204
@@ -26,8 +26,8 @@ class SearchViewModel: ViewModel, NetworkManager {
         
         var message: String? {
             switch self {
-            case .success:
-                return nil
+//            case .success:
+//                return nil
             case .network:
                 return Constant.networkDisconnectMessage
             case .overMaxCount:
@@ -63,7 +63,7 @@ class SearchViewModel: ViewModel, NetworkManager {
     
     struct Output {
         let tags = BehaviorRelay<[Section]>(value: [])
-        let result = PublishRelay<SearchResult>()
+        let result = PublishRelay<Result<Coordinate, SearchError>>()
     }
     
     
@@ -87,7 +87,7 @@ class SearchViewModel: ViewModel, NetworkManager {
                 case .error(.tokenError):
                     fetchNearUser.accept(fetchNearUser.value)
                 case .error(.network):
-                    output.result.accept(.network)
+                    output.result.accept(.failure(.network))
                 default:
                     print(result)
                 }
@@ -102,14 +102,14 @@ class SearchViewModel: ViewModel, NetworkManager {
             .subscribe(with: self) { model, result in
                 switch result {
                 case .success:
-                    output.result.accept(.success)
+                    output.result.accept(.success(model.coordinate))
                 case .error(.tokenError):
                     searchStudy.accept(searchStudy.value)
                 case .error(.network):
-                    output.result.accept(.network)
+                    output.result.accept(.failure(.network))
                 case let .status(code):
-                    if let searchResult = SearchResult(rawValue: code) {
-                        output.result.accept(searchResult) }
+                    if let error = SearchError(rawValue: code) {
+                        output.result.accept(.failure(error)) }
                 default:
                     print(result)
                 }
@@ -133,13 +133,13 @@ class SearchViewModel: ViewModel, NetworkManager {
             .bind { strings in
                 for str in strings {
                     if prefer.value.contains(str) {
-                        output.result.accept(.alreadyExist)
+                        output.result.accept(.failure(.alreadyExist))
                         return
                     } else if prefer.value.count + strings.count > 8 {
-                        output.result.accept(.overMaxCount)
+                        output.result.accept(.failure(.overMaxCount))
                         return
                     } else if str.count < 1 || str.count > 8 {
-                        output.result.accept(.overMaxLength)
+                        output.result.accept(.failure(.overMaxLength))
                         return
                     }
                 }
@@ -153,11 +153,11 @@ class SearchViewModel: ViewModel, NetworkManager {
                 switch item {
                 case let .aroundSectionItem(tag, _, _):
                     if prefer.value.contains(tag) {
-                        output.result.accept(.alreadyExist) }
+                        output.result.accept(.failure(.alreadyExist)) }
                     else if prefer.value.count < 8 {
                         prefer.accept(prefer.value.union([tag])) }
                     else {
-                        output.result.accept(.overMaxCount) }
+                        output.result.accept(.failure(.overMaxCount)) }
                 case let .preferSectionItem(tag, _):
                     prefer.accept(prefer.value.subtracting([tag]))
                 }

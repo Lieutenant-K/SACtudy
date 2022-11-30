@@ -58,10 +58,7 @@ class SearchViewController: BaseViewController {
     
     override func configureNavigationItem() {
         super.configureNavigationItem()
-        
         navigationItem.titleView = searchBar
-        
-        
     }
     
     func binding() {
@@ -82,9 +79,12 @@ class SearchViewController: BaseViewController {
         
         output.result
             .bind(with: self) { vc, result in
-                if result == .success {
-                    print(result) }
-                else { vc.view.makeToast(result.message) }
+                switch result {
+                case let .success(coordinate):
+                    vc.transition(InspectUserViewController(coordinate: coordinate), isModal: false)
+                case let .failure(error):
+                    vc.view.makeToast(error.message)
+                }
             }
             .disposed(by: disposeBag)
         
@@ -105,7 +105,7 @@ extension SearchViewController {
             case let .aroundSectionItem(tag, isRecommended, _):
                 cell.button.configureButton(text: tag, font: .title4, color: isRecommended ? .recommended : .inactive)
             case let .preferSectionItem(tag, _):
-                cell.button.configureButton(text: tag, font: .title4, color: .prefer)
+                cell.button.configureButton(text: tag, font: .title4, color: .outline)
                 cell.button.configuration?.image = Asset.Images.closeSmall.image.withRenderingMode(.alwaysTemplate)
                 cell.button.configuration?.imagePadding = 4
                 cell.button.configuration?.imagePlacement = .trailing
