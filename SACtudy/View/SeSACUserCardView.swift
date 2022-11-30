@@ -18,7 +18,6 @@ class SeSACUserCardView: UIView {
         if let imageView = $0.imageView {
             imageView.transform = imageView.transform.rotated(by: .pi/2)
         }
-        
         $0.contentHorizontalAlignment = .right
         $0.setImage(Asset.Images.moreArrow.image, for: .normal)
     }
@@ -30,6 +29,15 @@ class SeSACUserCardView: UIView {
     let reviewContainer = SeSACReview()
     
     let titleCollectionView: SeSACTitleCollectionView
+    
+    var isExpand: Bool = false {
+        didSet {
+            titleCollection.isHidden = !isExpand
+            reviewContainer.isHidden = !isExpand
+            let angle:CGFloat = isExpand ? -.pi/2 : .pi/2
+            expandButton.imageView?.transform = CGAffineTransform(rotationAngle: angle)
+        }
+    }
     
     private let cardContainerView = UIView().then {
         $0.layer.cornerRadius = 8
@@ -48,7 +56,7 @@ class SeSACUserCardView: UIView {
         
     }
     
-    private let disposeBag = DisposeBag()
+//    private let disposeBag = DisposeBag()
     
     private func configureCardView() {
         
@@ -77,30 +85,25 @@ class SeSACUserCardView: UIView {
         titleCollection.isHidden = true
         reviewContainer.isHidden = true
         
-        
+        expandButton.addTarget(self, action: #selector(touchExpandButton(_:)), for: .touchUpInside)
         expandButton.snp.makeConstraints { make in
             make.edges.equalTo(nicknameLabel)
-//            make.centerY.equalTo(nicknameLabel)
-//            make.height.equalTo(16)
-//            make.horizontalEdges.equalToSuperview().inset(16)
         }
         
-        expandButton.rx.tap
-            .bind { _ in
-                UIView.animate(withDuration: 0.3) { [weak self] in
-                    self?.titleCollection.isHidden.toggle()
-                    self?.reviewContainer.isHidden.toggle()
-                }
-                
-                if let imageView = self.expandButton.imageView {
-                    imageView.transform = imageView.transform.rotated(by: .pi)
-                }
-                
-            }
-            .disposed(by: disposeBag)
         
         
-        
+    }
+    
+    @objc func touchExpandButton(_ sender: UIButton) {
+//        UIView.animate(withDuration: 0.3) { [weak self] in
+            isExpand.toggle()
+//            self?.layoutIfNeeded()
+//            self?.titleCollection.isHidden.toggle()
+//            self?.reviewContainer.isHidden.toggle()
+//        }
+//        if let imageView = self.expandButton.imageView {
+//            imageView.transform = imageView.transform.rotated(by: .pi)
+//        }
     }
     
     init(){
