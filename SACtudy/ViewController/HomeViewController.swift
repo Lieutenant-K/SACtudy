@@ -87,15 +87,23 @@ class HomeViewController: BaseViewController {
         
         output.transition
             .bind(with: self) { vc, state in
+                let viewController: UIViewController
+                let coordinate = vc.rootView.mapView.centerCoordinate.toCoordinate
+                
                 switch state {
                 case .normal:
                     print("스터디 입력 화면")
-                    vc.transition(SearchViewController(coordinate: vc.rootView.mapView.centerCoordinate.toCoordinate), isModal: false)
+                    viewController = SearchViewController(coordinate: coordinate)
                 case .waitForMatch:
                     print("새싹 찾기 화면")
+                    viewController = InspectUserViewController(coordinate: coordinate)
                 case .matched:
+                    viewController = UIViewController()
                     print("채팅 화면")
                 }
+                
+                vc.transition(viewController, isModal: false)
+                
             }
             .disposed(by: disposeBag)
         
