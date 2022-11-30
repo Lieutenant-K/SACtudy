@@ -45,9 +45,8 @@ class BaseViewController: UIViewController {
         
         navigationController?.navigationBar.tintColor = Asset.Colors.black.color
 
-        let backButton = UIBarButtonItem(image: Asset.Images.arrow.image, style: .done, target: nil, action: nil)
-        
-        navigationItem.backBarButtonItem = backButton
+        navigationItem.backButtonDisplayMode = .minimal
+        navigationItem.backBarButtonItem = UIBarButtonItem(image: Asset.Images.arrow.image, style: .done, target: nil, action: nil)
         navigationItem.backButtonTitle = ""
         
     }
