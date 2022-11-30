@@ -16,3 +16,11 @@ extension NSAttributedString {
         self.init(string: text, attributes: attr)
     }
 }
+
+extension AttributedString {
+    
+    init(text: String, font: FontSet, color: UIColor) {
+        self.init(NSAttributedString(text: text, font: font, color: color))
+    }
+    
+}

@@ -29,7 +29,7 @@ class RoundedButton: UIButton {
         })
         
         config.attributedTitle =
-        AttributedString(NSAttributedString(text: text, font: font, color: color.titleColor))
+        AttributedString(text: text, font: font, color: color.titleColor)
         
         configuration = config
     }
