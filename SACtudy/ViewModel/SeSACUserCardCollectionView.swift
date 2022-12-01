@@ -6,14 +6,41 @@
 //
 
 import UIKit
+import Then
+import SnapKit
 
 class SeSACUserCardCollectionView: UICollectionView {
     
-    func configureView() {
+    
+    func configureView(backgroundTitle: String) {
         
         collectionViewLayout = createLayout()
-        
         register(UserCardCell.self, forCellWithReuseIdentifier: UserCardCell.reuseIdentifier)
+        backgroundView = UIView()
+        
+        // 백그라운드 뷰 세팅
+        let imageView = UIImageView(image: Asset.Images.empty.image)
+        let titleLabel = UILabel(text: backgroundTitle, font: .display)
+        let subtitleLabel = UILabel(text: "스터디를 변경하거나 조금만 더 기다려주세요!", font: .title4, color: Asset.Colors.gray7.color)
+        
+        [imageView, titleLabel, subtitleLabel].forEach {
+            backgroundView?.addSubview($0)
+        }
+        
+        imageView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.centerY.equalToSuperview().offset(-100)
+        }
+        
+        titleLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(imageView.snp.bottom).offset(32)
+        }
+        
+        subtitleLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(titleLabel.snp.bottom).offset(8)
+        }
         
     }
     
@@ -38,9 +65,9 @@ class SeSACUserCardCollectionView: UICollectionView {
         
     }
     
-    init(){
+    init(backgroudTitle: String){
         super.init(frame: .zero, collectionViewLayout: UICollectionViewLayout())
-        configureView()
+        configureView(backgroundTitle: backgroudTitle)
     }
     
     @available(*, unavailable)

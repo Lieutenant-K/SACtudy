@@ -44,8 +44,8 @@ class InspectUserView: UIView {
     }
     
     init() {
-        self.nearUserCollection = SeSACUserCardCollectionView()
-        self.requestUserCollection = SeSACUserCardCollectionView()
+        self.nearUserCollection = SeSACUserCardCollectionView(backgroudTitle: "아쉽게도 주변에 새싹이 없어요ㅠ")
+        self.requestUserCollection = SeSACUserCardCollectionView(backgroudTitle: "아직 받은 요청이 없어요ㅠ")
         self.tabMenu = SeSACTabMenu(items: [
             TabMenuItem(title: "주변 새싹", view: nearUserCollection),
             TabMenuItem(title: "받은 요청", view: requestUserCollection)

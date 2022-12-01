@@ -78,7 +78,10 @@ extension InspectUserViewController {
                 }
                 return nil
             }
-            .bind(to: output.isCurrentEmpty)
+            .bind(with: self) { vc, bool in
+                output.isCurrentEmpty.accept(bool)
+                vc.rootView.nearUserCollection.backgroundView?.isHidden = !bool
+            }
             .disposed(by: disposeBag)
         
         output.requestUserList
@@ -89,7 +92,10 @@ extension InspectUserViewController {
                 }
                 return nil
             }
-            .bind(to: output.isCurrentEmpty)
+            .bind(with: self) { vc, bool in
+                output.isCurrentEmpty.accept(bool)
+                vc.rootView.requestUserCollection.backgroundView?.isHidden = !bool
+            }
             .disposed(by: disposeBag)
         
         output.requestUserList
@@ -100,8 +106,6 @@ extension InspectUserViewController {
             .map{!$0}
             .bind(to: rootView.refreshButton.rx.isHidden, rootView.changeStudyButton.rx.isHidden)
             .disposed(by: disposeBag)
-        
-        
         
         
         output.deleteResult
