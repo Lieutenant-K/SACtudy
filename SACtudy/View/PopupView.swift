@@ -18,6 +18,9 @@ class PopupView: UIView {
     
     private func configureView() {
         
+        titleLabel.numberOfLines = 0
+        subtitleLabel.numberOfLines = 0
+        
         let buttonStack = UIStackView(arrangedSubviews: [cancleButton, okButton]).then {
             $0.spacing = 8
             $0.axis = .horizontal

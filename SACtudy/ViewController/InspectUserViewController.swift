@@ -154,7 +154,10 @@ extension InspectUserViewController {
                 buttonTitle = "요청하기"
                 cell.decideStudyButton.rx.tap
                     .bind { _ in
-                        print("주변 새싹 버튼")
+                        let vc = StudyPopupViewController(uid: item.uid, type: .request)
+                        vc.modalTransitionStyle = .crossDissolve
+                        vc.modalPresentationStyle = .overFullScreen
+                        self?.transition(vc, isModal: true)
                     }
                     .disposed(by: cell.disposeBag)
     
@@ -163,7 +166,10 @@ extension InspectUserViewController {
                 buttonTitle = "수락하기"
                 cell.decideStudyButton.rx.tap
                     .bind { _ in
-                        print("받은 요청 버튼")
+                        let vc = StudyPopupViewController(uid: item.uid, type: .accept)
+                        vc.modalTransitionStyle = .crossDissolve
+                        vc.modalPresentationStyle = .overFullScreen
+                        self?.transition(vc, isModal: true)
                     }
                     .disposed(by: cell.disposeBag)
             }
