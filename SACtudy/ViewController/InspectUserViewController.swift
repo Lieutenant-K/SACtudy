@@ -37,6 +37,7 @@ class InspectUserViewController: BaseViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
         tabBarController?.tabBar.isHidden = true
+
     }
     
     override func configureNavigationItem() {
@@ -55,7 +56,9 @@ extension InspectUserViewController {
         let input = InspectUserViewModel.Input(
             deleteStudyButtonTap: deleteStudyButton.rx.tap,
             refreshButtonTap: rootView.refreshButton.rx.tap,
+            changeStudyButtonTap: rootView.changeStudyButton.rx.tap,
             nearUserItemSelected:  rootView.nearUserCollection.rx.itemSelected,
+            requestUserItemSelected: rootView.requestUserCollection.rx.itemSelected,
             menuTap: rootView.tabMenu.rx.menuTap
         )
         
@@ -108,15 +111,26 @@ extension InspectUserViewController {
             .disposed(by: disposeBag)
         
         
-        output.deleteResult
+        output.actionResult
             .bind(with: self) { vc, result in
                 switch result {
-                case .success:
+                    
+                case .deleteSuccess:
                     vc.navigationController?.popToRootViewController(animated: true)
                 case .alreadyMatched:
                     print("채팅화면으로 이동")
-                default:
-                    print(result)
+                case let .changeStudy(coordinate):
+                    
+                    if let search = vc.navigationController?.viewControllers.compactMap({ $0 as? SearchViewController }).first {
+                        vc.navigationController?.popToViewController(search, animated: true)
+                    } else {
+                        vc.navigationController?.pushViewController(SearchViewController(coordinate: coordinate), animated: true)
+                    }
+                    
+                    
+                case .network:
+                    vc.view.makeToast(Constant.networkDisconnectMessage)
+                    
                 }
             }
             .disposed(by: disposeBag)
@@ -128,11 +142,40 @@ extension InspectUserViewController {
 extension InspectUserViewController {
     
     private func createDataSource() -> RxCollectionViewSectionedReloadDataSource<InspectUserViewModel.Section> {
-        return RxCollectionViewSectionedReloadDataSource { dataSource, collectionView, indexPath, item in
+        return RxCollectionViewSectionedReloadDataSource { [weak self] dataSource, collectionView, indexPath, item in
             
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: UserCardCell.reuseIdentifier, for: indexPath) as? UserCardCell else { return UICollectionViewCell() }
             
+            let mainColor: UIColor
+            let buttonTitle: String
             
+            if collectionView == self?.rootView.nearUserCollection {
+                mainColor = Asset.Colors.error.color
+                buttonTitle = "요청하기"
+                cell.decideStudyButton.rx.tap
+                    .bind { _ in
+                        print("주변 새싹 버튼")
+                    }
+                    .disposed(by: cell.disposeBag)
+    
+            } else {
+                mainColor = Asset.Colors.success.color
+                buttonTitle = "수락하기"
+                cell.decideStudyButton.rx.tap
+                    .bind { _ in
+                        print("받은 요청 버튼")
+                    }
+                    .disposed(by: cell.disposeBag)
+            }
+            
+            let colorSet = ColorSet(
+                titleColor: Asset.Colors.white.color,
+                backgroundColor: mainColor,
+                strokeColor: mainColor,
+                imageColor: Asset.Colors.white.color
+            )
+            
+            cell.decideStudyButton.configureButton(text: buttonTitle, font: .title3, color: colorSet)
             cell.inputData(user: item)
             
             return cell

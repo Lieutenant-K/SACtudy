@@ -12,10 +12,11 @@ import RxDataSources
 
 class InspectUserViewModel: ViewModel, NetworkManager {
     
-    enum DeleteResult: Int {
-        case success = 200
-        case alreadyMatched = 201
-        case network = -1
+    enum ActionResult {
+        case deleteSuccess
+        case alreadyMatched
+        case changeStudy(Coordinate)
+        case network
     }
     
     let coordinate: Coordinate
@@ -27,14 +28,16 @@ class InspectUserViewModel: ViewModel, NetworkManager {
     struct Input {
         let deleteStudyButtonTap: ControlEvent<Void>
         let refreshButtonTap: ControlEvent<Void>
+        let changeStudyButtonTap: ControlEvent<Void>
         let nearUserItemSelected: ControlEvent<IndexPath>
+        let requestUserItemSelected: ControlEvent<IndexPath>
         let menuTap: ControlEvent<Int>
     }
     
     struct Output {
         let nearUserList = BehaviorRelay<[Section]>(value: [])
         let requestUserList = BehaviorRelay<[Section]>(value: [])
-        let deleteResult = PublishRelay<DeleteResult>()
+        let actionResult = PublishRelay<ActionResult>()
         let isCurrentEmpty = PublishRelay<Bool>()
     }
     
@@ -44,7 +47,8 @@ class InspectUserViewModel: ViewModel, NetworkManager {
         let output = Output()
         
         let fetchNearUser = BehaviorRelay<Coordinate>(value: coordinate)
-        let deletStudy = PublishRelay<Void>()
+        let deleteStudy = PublishRelay<Void>()
+        let changeStudy = PublishRelay<Void>()
         
         fetchNearUser
             .withUnretained(self)
@@ -70,18 +74,38 @@ class InspectUserViewModel: ViewModel, NetworkManager {
             }
             .disposed(by: disposeBag)
         
-        deletStudy
+        deleteStudy
             .withUnretained(self)
             .flatMapLatest { model, _ in
-                model.request(router: .queue(.deleteMyStudy), type: Empty.self) }
+                model.request(router: .queue(.deleteMyStudy), type: Empty.self)
+            }
             .subscribe(with: self) { model, result in
                 switch result {
                 case .success:
-                    output.deleteResult.accept(.success)
+                    output.actionResult.accept(.deleteSuccess)
                 case .error(.tokenError):
-                    deletStudy.accept(())
+                    deleteStudy.accept(())
                 case .error(.network):
-                    output.deleteResult.accept(.network)
+                    output.actionResult.accept(.network)
+                default:
+                    print(result)
+                }
+            }
+            .disposed(by: disposeBag)
+        
+        changeStudy
+            .withUnretained(self)
+            .flatMapLatest { model, _ in
+                model.request(router: .queue(.deleteMyStudy), type: Empty.self)
+            }
+            .subscribe(with: self) { model, result in
+                switch result {
+                case .success:
+                    output.actionResult.accept(.changeStudy(model.coordinate))
+                case .error(.tokenError):
+                    changeStudy.accept(())
+                case .error(.network):
+                    output.actionResult.accept(.network)
                 default:
                     print(result)
                 }
@@ -89,7 +113,7 @@ class InspectUserViewModel: ViewModel, NetworkManager {
             .disposed(by: disposeBag)
         
         input.deleteStudyButtonTap
-            .bind(to: deletStudy)
+            .bind(to: deleteStudy)
             .disposed(by: disposeBag)
         
         input.refreshButtonTap
@@ -107,6 +131,21 @@ class InspectUserViewModel: ViewModel, NetworkManager {
             }
             .bind(to: output.nearUserList)
             .disposed(by: disposeBag)
+        
+        input.requestUserItemSelected
+            .compactMap { index in
+                if var items = output.requestUserList.value.first?.items {
+                    items[index.row].displayingDetail.toggle()
+                    return [Section(items: items)]
+                } else { return nil }
+            }
+            .bind(to: output.requestUserList)
+            .disposed(by: disposeBag)
+        
+        input.changeStudyButtonTap
+            .bind(to: changeStudy)
+            .disposed(by: disposeBag)
+            
         
         input.menuTap
             .compactMap {

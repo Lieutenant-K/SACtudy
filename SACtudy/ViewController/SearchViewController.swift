@@ -13,6 +13,7 @@ import RxDataSources
 class SearchViewController: BaseViewController {
     
     let rootView = SearchView()
+    let backButton = UIBarButtonItem(image: Asset.Images.arrow.image, style: .plain, target: nil, action: nil)
     let searchBar = UISearchBar().then {
         
         let font: FontSet = .title4
@@ -59,6 +60,7 @@ class SearchViewController: BaseViewController {
     override func configureNavigationItem() {
         super.configureNavigationItem()
         navigationItem.titleView = searchBar
+        navigationItem.leftBarButtonItem = backButton
     }
     
     func binding() {
@@ -71,10 +73,15 @@ class SearchViewController: BaseViewController {
         
         let output = viewModel.transform(input, disposeBag: disposeBag)
         
-        let dataSource = createDataSource()
+//        let dataSource = createDataSource()
+        backButton.rx.tap
+            .bind(with: self) { vc, _ in
+                vc.navigationController?.popToRootViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
         
         output.tags
-            .bind(to: rootView.tagCollectionView.rx.items(dataSource: dataSource))
+            .bind(to: rootView.tagCollectionView.rx.items(dataSource: createDataSource()))
             .disposed(by: disposeBag)
         
         output.result

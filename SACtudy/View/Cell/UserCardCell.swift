@@ -13,8 +13,8 @@ import RxCocoa
 class UserCardCell: UICollectionViewCell {
     
     let userCardView = SeSACUserCardView()
-    private let reputation = PublishRelay<[Reputation]>()
-    private let disposeBag = DisposeBag()
+    let decideStudyButton = RoundedButton(fontSet: .title3, colorSet: .inactive)
+    var disposeBag = DisposeBag()
     
     var expandButton: UIButton {
         userCardView.expandButton
@@ -22,13 +22,14 @@ class UserCardCell: UICollectionViewCell {
     
     private func configureCell() {
         contentView.addSubview(userCardView)
-        userCardView.snp.makeConstraints { $0.edges.equalToSuperview() }
-        
-        reputation.bind(to: userCardView.titleCollectionView.rx.items(dataSource: createReputationDataSource()))
-            .disposed(by: disposeBag)
+        contentView.addSubview(decideStudyButton)
+        userCardView.snp.makeConstraints {
+            $0.edges.equalToSuperview() }
+        decideStudyButton.snp.makeConstraints {
+            $0.trailing.top.equalToSuperview().inset(12) }
+
         
         expandButton.isUserInteractionEnabled = false
-//        expandButton.removeTarget(userCardView, action: #selector(userCardView.touchExpandButton(_:)), for: .touchUpInside)
         
         userCardView.cardImageView.addGestureRecognizer(UITapGestureRecognizer())
     }
@@ -45,14 +46,20 @@ class UserCardCell: UICollectionViewCell {
         if let firstReview = user.reviews.first {
             userCardView.reviewContainer.reviewLabel.attributedText = NSAttributedString(text: firstReview, font: .body3, color: Asset.Colors.black.color)
             userCardView.reviewContainer.reviewLabel.textAlignment = .left
+            userCardView.reviewContainer.moreButton.isHidden = false
         } else {
             userCardView.reviewContainer.reviewLabel.attributedText = NSAttributedString(text: "첫 리뷰를 기다리는 중이에요!", font: .body3, color: Asset.Colors.gray6.color)
             userCardView.reviewContainer.reviewLabel.textAlignment = .left
+            userCardView.reviewContainer.moreButton.isHidden = true
         }
         
         userCardView.isExpand = user.displayingDetail
         
-        reputation.accept([user.reputation])
+        Observable.just([user.reputation])
+            .bind(to: userCardView.titleCollectionView.rx.items(dataSource: createReputationDataSource()))
+            .disposed(by: disposeBag)
+        
+//        reputation.accept([user.reputation])
         
     }
     
@@ -69,6 +76,11 @@ class UserCardCell: UICollectionViewCell {
             
         })
         
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
     }
     
     override init(frame: CGRect) {
