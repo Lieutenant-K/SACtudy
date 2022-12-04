@@ -125,17 +125,59 @@ enum QueueURI: URI {
     
 }
 
+enum ChatURI: URI {
+    
+    case sendChat(uid: String, content: String)
+    case getChatList(uid: String, latestDate: String)
+    
+    var baseURI: String {
+        return "/chat"
+    }
+    
+    var subURI: String {
+        switch self {
+        case let .sendChat(uid,_):
+            return "/\(uid)"
+        case let .getChatList(uid, _):
+            return "/\(uid)"
+        }
+    }
+    
+    var method: HTTPMethod {
+        switch self {
+        case .sendChat:
+            return .post
+        case .getChatList:
+            return .get
+        }
+    }
+    
+    
+    var parameters: Parameters? {
+        switch self {
+        case .sendChat(_, let content):
+            return ["chat":content]
+        case .getChatList(_, let latestDate):
+            return ["lastchatDate":latestDate]
+        }
+    }
+    
+}
+
 enum Router: URLRequestConvertible {
     
     // MARK: - Cases
     case user(UserURI)
     case queue(QueueURI)
+    case chat(ChatURI)
     
     var uri: URI {
         switch self {
         case let .user(uri):
             return uri
         case let .queue(uri):
+            return uri
+        case let .chat(uri):
             return uri
         }
     }
@@ -179,10 +221,7 @@ enum Router: URLRequestConvertible {
         
         if let parameters = parameters {
 
-            return try URLEncoding(arrayEncoding: .noBrackets).encode(urlRequest, with: parameters)
-            
-//            return try URLEncoding.default.encode(urlRequest, with: parameters)
-            
+            return try URLEncoding(destination: .methodDependent, arrayEncoding: .noBrackets).encode(urlRequest, with: parameters)
 
         }
 
