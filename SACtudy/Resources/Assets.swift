@@ -68,6 +68,8 @@ internal enum Asset {
     internal static let qna = ImageAsset(name: "qna")
     internal static let refresh = ImageAsset(name: "refresh")
     internal static let search = ImageAsset(name: "search")
+    internal static let sendActive = ImageAsset(name: "send_active")
+    internal static let sendInactive = ImageAsset(name: "send_inactive")
     internal static let sesacBackground0 = ImageAsset(name: "sesac_background_0")
     internal static let sesacBackground1 = ImageAsset(name: "sesac_background_1")
     internal static let sesacBackground2 = ImageAsset(name: "sesac_background_2")
