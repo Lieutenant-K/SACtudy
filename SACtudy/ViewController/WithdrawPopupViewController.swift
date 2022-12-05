@@ -43,7 +43,7 @@ class WithdrawPopupViewController: BaseViewController {
             }
             .disposed(by: disposeBag)
         
-        rootView.cancleButton.rx.tap
+        rootView.cancelButton.rx.tap
             .bind(with: self) { vc, _ in
                 vc.dismiss(animated: true) }
             .disposed(by: disposeBag)

@@ -35,7 +35,7 @@ class StudyPopupViewController: BaseViewController {
         
         let input = StudyPopupViewModel.Input(
             okButtonTap: popupView.okButton.rx.tap,
-            cancelButtonTap: popupView.cancleButton.rx.tap
+            cancelButtonTap: popupView.cancelButton.rx.tap
         )
         
         let output = viewModel.transform(input, disposeBag: disposeBag)

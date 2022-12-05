@@ -9,7 +9,7 @@ import UIKit
 
 class PopupView: UIView {
     
-    let cancleButton = RoundedButton(title: "취소", fontSet: .body3, colorSet: .cancel, height: .h48)
+    let cancelButton = RoundedButton(title: "취소", fontSet: .body3, colorSet: .cancel, height: .h48)
     
     let okButton = RoundedButton(title: "확인", fontSet: .body3, colorSet: .fill, height: .h48)
     
@@ -21,7 +21,7 @@ class PopupView: UIView {
         titleLabel.numberOfLines = 0
         subtitleLabel.numberOfLines = 0
         
-        let buttonStack = UIStackView(arrangedSubviews: [cancleButton, okButton]).then {
+        let buttonStack = UIStackView(arrangedSubviews: [cancelButton, okButton]).then {
             $0.spacing = 8
             $0.axis = .horizontal
             $0.distribution = .fillEqually
