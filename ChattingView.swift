@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 
 class ChattingView: UIView {
+    let topMenu = ChattingTopMenu()
     let textView = ChattingTextView(placeholder: "메세지를 입력하세요")
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
     var bottomConstraint: Constraint?
@@ -18,20 +19,28 @@ class ChattingView: UIView {
         collectionView.register(ChatCell.self, forCellWithReuseIdentifier: ChatCell.reuseIdentifier)
         collectionView.register(ChattingAnnounceHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ChattingAnnounceHeaderView.reuseIdentifier)
         collectionView.collectionViewLayout = createLayout()
+        
+        topMenu.isHidden = true
+        topMenu.alpha = 0.0
     }
     
     func constraintSubviews(){
-        [textView, collectionView].forEach{addSubview($0)}
+        [textView, collectionView, topMenu].forEach{addSubview($0)}
         
         // 채팅입력 텍스트뷰
         textView.snp.makeConstraints{ [weak self] in
             $0.horizontalEdges.equalTo(safeAreaLayoutGuide).inset(16)
             self?.bottomConstraint = $0.bottom.equalTo(safeAreaLayoutGuide).inset(16).constraint
         }
-        
+        // 컬렉션 뷰
         collectionView.snp.makeConstraints{
             $0.horizontalEdges.top.equalTo(safeAreaLayoutGuide)
             $0.bottom.equalTo(textView.snp.top).offset(-8)
+        }
+        // 메뉴
+        topMenu.snp.makeConstraints{
+            $0.horizontalEdges.top.equalTo(safeAreaLayoutGuide)
+            $0.bottom.equalToSuperview()
         }
     }
     

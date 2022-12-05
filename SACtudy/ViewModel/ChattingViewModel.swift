@@ -10,8 +10,7 @@ import RxSwift
 import RxCocoa
 import RxDataSources
 
-class ChattingViewModel: ViewModel {
-    
+class ChattingViewModel: ViewModel, NetworkManager {
     let manager: ChatManager
     let uid: String
     
@@ -24,18 +23,46 @@ class ChattingViewModel: ViewModel {
         let viewDidLoad: ControlEvent<Void>
         let chattingText: ControlProperty<String?>
         let sendButtonTap: Observable<String>
+        let menuButtonTap: ControlEvent<Void>
     }
     
     struct Output {
         let chatList = PublishRelay<[Section]>()
+        let isStduyEnded = PublishRelay<MatchState>()
     }
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         let output = Output()
+        let fetchMyState = PublishRelay<Void>()
+        
+        fetchMyState
+            .withUnretained(self)
+            .flatMapLatest { model, _ in
+                model.request(router: .queue(.myQueueState), type: MyQueueState.self)
+            }
+            .subscribe(with: self) { model, result in
+                var matchState = MatchState(uid: model.uid, isEnd: true)
+                switch result {
+                case let .success(state):
+                    guard let state else { return }
+                    let isEnd = state.matched == 1 && state.dodged == 0 && state.reviewed == 0 ? false : true
+                    matchState.isEnd = isEnd
+                    output.isStduyEnded.accept(matchState)
+                case .status(201):
+                    output.isStduyEnded.accept(matchState)
+                case .error(.tokenError):
+                    fetchMyState.accept(())
+                default:
+                    print(result)
+                }
+            }
+            .disposed(by: disposeBag)
         
         input.viewDidLoad
             .subscribe(with: self) { model, _ in
-                model.manager.fetchChatData()}
+                fetchMyState.accept(())
+                model.manager.fetchChatData()
+            }
             .disposed(by: disposeBag)
         
         input.sendButtonTap
@@ -43,6 +70,10 @@ class ChattingViewModel: ViewModel {
             .subscribe(with: self){ model, text in
                 model.manager.sendChat(content: text)
             }
+            .disposed(by: disposeBag)
+        
+        input.menuButtonTap
+            .bind(to: fetchMyState)
             .disposed(by: disposeBag)
         
         Observable.combineLatest(manager.fetchChatList(), UserRepository.shared.fetchUserData())
@@ -60,6 +91,13 @@ class ChattingViewModel: ViewModel {
         return output
     }
     
+}
+
+extension ChattingViewModel {
+    struct MatchState {
+        let uid: String
+        var isEnd: Bool
+    }
 }
 
 extension ChattingViewModel {
