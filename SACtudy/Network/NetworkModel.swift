@@ -74,6 +74,10 @@ struct UserSearchResult: Codable {
     let fromRecommend: [String]
 }
 
+struct UserChatList: Codable {
+    let payload: [Chat]
+}
+
 enum APIErrors: Int, Error {
     
     case tokenError = 401
