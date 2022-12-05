@@ -97,8 +97,10 @@ class HomeViewController: BaseViewController {
                 case .waitForMatch:
                     print("새싹 찾기 화면")
                     viewController = InspectUserViewController(coordinate: coordinate)
-                case .matched:
-                    viewController = UIViewController()
+                case let .matched(nick, uid):
+                    let chatManager = ChatRepository(uid: uid, socketManager: SocketRepository())
+                    let viewModel = ChattingViewModel(manager: chatManager, uid: uid)
+                    viewController = ChattingViewController(nickname: nick, viewModel: viewModel)
                     print("채팅 화면")
                 }
                 
@@ -146,6 +148,7 @@ extension HomeViewController: MKMapViewDelegate {
         }
     }
     
+    /*
     func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
         
         let coordinate1 = mapView.convert(CGPoint(x: 0, y: mapView.frame.height/2), toCoordinateFrom: mapView)
@@ -160,7 +163,7 @@ extension HomeViewController: MKMapViewDelegate {
         
         
     }
-    
+    */
 }
 
 extension HomeViewController: CLLocationManagerDelegate {

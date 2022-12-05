@@ -11,7 +11,7 @@ import RxCocoa
 import CoreLocation
 
 enum QueueState {
-    case normal, waitForMatch, matched
+    case normal, waitForMatch, matched(nick: String, uid: String)
     
     var iconImage: ImageAsset {
         switch self {
@@ -71,8 +71,9 @@ class HomeViewModel: ViewModel, NetworkManager {
                 switch result {
                 case let .success(state):
                     guard let state else { return }
-                    let myState: QueueState = state.matched == 0 ? .waitForMatch : .matched
-                    output.myState.accept(myState)
+                    if let nick = state.matchedNick, let uid = state.matchedUid, state.matched == 1 {
+                        output.myState.accept(.matched(nick: nick, uid: uid)) }
+                    else {output.myState.accept(.waitForMatch)}
                 case .status(201):
                     output.myState.accept(.normal)
                 case .error(.tokenError):
