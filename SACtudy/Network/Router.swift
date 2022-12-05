@@ -76,6 +76,7 @@ enum QueueURI: URI {
     case deleteMyStudy
     case requestStudyTo(uid: String)
     case acceptStudyWith(uid: String)
+    case cancelStudy(uid: String)
     
     var baseURI: String {
         return "/queue"
@@ -91,6 +92,8 @@ enum QueueURI: URI {
             return "/studyrequest"
         case .acceptStudyWith:
             return "/studyaccept"
+        case .cancelStudy:
+            return "/dodge"
         default:
             return ""
         }
@@ -100,7 +103,7 @@ enum QueueURI: URI {
         switch self {
         case .myQueueState:
             return .get
-        case .searchNearStudy, .requestMyStudy, .requestStudyTo, .acceptStudyWith:
+        case .searchNearStudy, .requestMyStudy, .requestStudyTo, .acceptStudyWith, .cancelStudy:
             return .post
         case .deleteMyStudy:
             return .delete
@@ -117,6 +120,8 @@ enum QueueURI: URI {
         case let .requestStudyTo(uid):
             return ["otheruid": uid]
         case let .acceptStudyWith(uid):
+            return ["otheruid": uid]
+        case let .cancelStudy(uid):
             return ["otheruid": uid]
         default:
             return nil
