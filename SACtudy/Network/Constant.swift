@@ -18,6 +18,10 @@ struct Constant {
         return "v1"
     }
     
+    static var socketURL: URL {
+        return URL(string: "http://api.sesac.co.kr:1210/")!
+    }
+    
     static var idtoken: String {
         get { UserDefaults.standard.string(forKey: "idtoken") ?? "" }
         set { UserDefaults.standard.setValue(newValue, forKey: "idtoken") }
