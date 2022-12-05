@@ -26,7 +26,16 @@ final class SeSACTabBarController: UITabBarController {
         let myInfo = MyInfoMenuViewController()
         myInfo.tabBarItem = UITabBarItem(title: "내정보", image: Asset.Images.my.image, tag: 3)
         
-        viewControllers = [home, shop, friends, myInfo].map {UINavigationController(rootViewController: $0)}
+        viewControllers = [home, shop, friends, myInfo].map {
+            let appear = UINavigationBarAppearance()
+            appear.configureWithDefaultBackground()
+            appear.backgroundColor = Asset.Colors.white.color
+            appear.shadowColor = .black.withAlphaComponent(0.04)
+            let navi = UINavigationController(rootViewController: $0)
+            navi.navigationBar.scrollEdgeAppearance = appear
+            navi.navigationBar.standardAppearance = appear
+            return navi
+        }
         
         let font = FontSet.body4
         
