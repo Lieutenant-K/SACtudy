@@ -17,6 +17,7 @@ class ChatCell: UICollectionViewCell, ChatCellType {
             contentView.addSubview($0)
         }
         
+        content.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         content.snp.makeConstraints {
             $0.verticalEdges.leading.equalToSuperview()
         }
@@ -33,9 +34,18 @@ class ChatCell: UICollectionViewCell, ChatCellType {
     func inputData(data: ChatData) {
         timeLabel.attributedText = NSAttributedString(text: data.createdAt, font: .title6, color: Asset.Colors.gray6.color)
         timeLabel.textAlignment = .left
-        content.configureButton(text: data.content, font: .body3, color: .inactive)
+        
+        let colorSet = ColorSet(titleColor: Asset.Colors.black.color,
+                                backgroundColor: Asset.Colors.whitegreen.color,
+                                strokeColor: Asset.Colors.whitegreen.color,
+                                imageColor: Asset.Colors.black.color)
+        let fontSet = FontSet.body3
+        let paragraph = fontSet.paragraph as? NSMutableParagraphStyle
+        paragraph?.alignment = .left
+        let newFontSet = FontSet(font: fontSet.font, paragraph: paragraph ?? fontSet.paragraph, baselineOffset: fontSet.baselineOffset)
+        
+        content.configureButton(text: data.content, font: newFontSet, color: .inactive)
         content.titleLabel?.numberOfLines = 0
-        content.contentHorizontalAlignment = .left
     }
     
     override init(frame: CGRect) {

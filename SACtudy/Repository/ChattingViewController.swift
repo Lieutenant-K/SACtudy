@@ -12,7 +12,7 @@ import RxDataSources
 
 class ChattingViewController: BaseViewController {
     
-    var backButton: UIBarButtonItem?
+    let backButton: UIBarButtonItem
     let nickname: String
     let viewModel: ChattingViewModel
     let rootView = ChattingView()
@@ -20,6 +20,7 @@ class ChattingViewController: BaseViewController {
     init(nickname: String, viewModel: ChattingViewModel) {
         self.nickname = nickname
         self.viewModel = viewModel
+        self.backButton = UIBarButtonItem(image: Asset.Images.arrow.image, style: .plain, target: nil, action: nil)
         super.init(nibName: nil, bundle: nil)
         binding()
         addNotificationObserver()
@@ -33,12 +34,6 @@ class ChattingViewController: BaseViewController {
         view = rootView
     }
     
-//    override func viewDidLoad() {
-//        super.viewDidLoad()
-////        binding()
-////        addNotificationObserver()
-//    }
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
@@ -47,7 +42,6 @@ class ChattingViewController: BaseViewController {
     
     override func configureNavigationItem() {
         super.configureNavigationItem()
-        backButton = UIBarButtonItem(image: Asset.Images.arrow.image, style: .plain, target: nil, action: nil)
         navigationItem.leftBarButtonItem = backButton
         navigationItem.titleView = UILabel(text: nickname, font: .title3)
     }
@@ -69,7 +63,7 @@ class ChattingViewController: BaseViewController {
 extension ChattingViewController {
     func binding() {
         let input = ChattingViewModel.Input(
-            viewWillAppear: self.rx.viewDidLoad,
+            viewDidLoad: self.rx.viewDidLoad,
             chattingText: rootView.textView.rx.text,
             sendButtonTap: rootView.textView.sendButton.rx.tap.map{ [weak self] in
                 self?.rootView.textView.text ?? ""
@@ -81,11 +75,14 @@ extension ChattingViewController {
             .bind(to: rootView.collectionView.rx.items(dataSource: createDataSource()))
             .disposed(by: disposeBag)
         
-        output.buttonValidation
-            .bind(to: rootView.textView.sendButton.rx.isEnabled)
+        
+        
+        rootView.textView.sendButton.rx.tap
+            .map { _ in "" }
+            .bind(to: rootView.textView.rx.text)
             .disposed(by: disposeBag)
         
-        backButton?.rx.tap
+        backButton.rx.tap
             .bind(with: self) { vc, _ in
                 vc.navigationController?.popToRootViewController(animated: true)}
             .disposed(by: disposeBag)

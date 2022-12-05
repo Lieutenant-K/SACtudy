@@ -21,20 +21,19 @@ class ChattingViewModel: ViewModel {
     }
     
     struct Input {
-        let viewWillAppear: ControlEvent<Void>
+        let viewDidLoad: ControlEvent<Void>
         let chattingText: ControlProperty<String?>
         let sendButtonTap: Observable<String>
     }
     
     struct Output {
-        let buttonValidation = PublishRelay<Bool>()
         let chatList = PublishRelay<[Section]>()
     }
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
         let output = Output()
         
-        input.viewWillAppear
+        input.viewDidLoad
             .subscribe(with: self) { model, _ in
                 model.manager.fetchChatData()}
             .disposed(by: disposeBag)
