@@ -9,9 +9,9 @@ import UIKit
 
 class SeSACUserImageView: UIView {
 
-    let backgroundImageView = UIImageView(image: Asset.Images.sesacBackground1.image)
+    let backgroundImageView = UIImageView(image: Asset.Images.sesacBackground0.image)
     
-    let sesacImageView = UIImageView(image: Asset.Images.sesacFace1.image)
+    let sesacImageView = UIImageView(image: Asset.Images.sesacFace0.image)
     
     private func configureView() {
         

@@ -11,13 +11,16 @@ import CoreLocation
 final class SeSACTabBarController: UITabBarController {
 
     private func configureTabBarItems() {
-        
         let manager = CLLocationManager()
         let home = HomeViewController(manager: manager)
         manager.delegate = home
         home.tabBarItem = UITabBarItem(title: "홈", image: Asset.Images.home.image, tag: 0)
         
-        let shop = ShopViewController()
+        let sesacCollection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
+        let backgroundCollection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
+        backgroundCollection.backgroundColor = .gray
+        let shopView = ShopView(sesac: sesacCollection, backgrond: backgroundCollection)
+        let shop = ShopViewController(rootView: shopView)
         shop.tabBarItem = UITabBarItem(title: "새싹샵", image: Asset.Images.shop.image, tag: 1)
         
         let friends = FriendsViewController()
@@ -27,11 +30,14 @@ final class SeSACTabBarController: UITabBarController {
         myInfo.tabBarItem = UITabBarItem(title: "내정보", image: Asset.Images.my.image, tag: 3)
         
         viewControllers = [home, shop, friends, myInfo].map {
+            let dummy = emptyImage(with: CGSize(width: 0.01, height: 0.01))
             let appear = UINavigationBarAppearance()
             appear.configureWithDefaultBackground()
             appear.backgroundColor = Asset.Colors.white.color
             appear.shadowColor = .black.withAlphaComponent(0.04)
+            appear.setBackIndicatorImage(dummy, transitionMaskImage: dummy)
             let navi = UINavigationController(rootViewController: $0)
+            navi.navigationBar.tintColor = Asset.Colors.black.color
             navi.navigationBar.scrollEdgeAppearance = appear
             navi.navigationBar.standardAppearance = appear
             return navi
@@ -60,9 +66,6 @@ final class SeSACTabBarController: UITabBarController {
         tabBar.tintColor = Asset.Colors.green.color
         tabBar.standardAppearance = appear
         tabBar.scrollEdgeAppearance = appear
-        
-        
-        
     }
     
     override func viewDidLoad() {
@@ -70,8 +73,13 @@ final class SeSACTabBarController: UITabBarController {
         configureTabBarItems()
         
     }
-    
+}
 
-
-
+extension SeSACTabBarController {
+    func emptyImage(with size: CGSize) -> UIImage? {
+        UIGraphicsBeginImageContext(size)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return image
+    }
 }

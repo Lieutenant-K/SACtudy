@@ -38,17 +38,8 @@ class BaseViewController: UIViewController {
     
     
     func configureNavigationItem() {
-        
-        navigationController?.navigationBar.backIndicatorImage = UIImage()
-
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage()
-        
-        navigationController?.navigationBar.tintColor = Asset.Colors.black.color
-
-        navigationItem.backButtonDisplayMode = .minimal
         navigationItem.backBarButtonItem = UIBarButtonItem(image: Asset.Images.arrow.image, style: .done, target: nil, action: nil)
         navigationItem.backButtonTitle = ""
-        
     }
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
