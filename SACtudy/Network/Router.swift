@@ -14,6 +14,7 @@ enum UserURI: URI {
     case login
     case updateUserSetting(data: User.UserSetting)
     case withdraw
+    case updateFCMToken(token: String)
     
     var baseURI: String {
         return "/user"
@@ -27,6 +28,8 @@ enum UserURI: URI {
             return "/mypage"
         case .withdraw:
             return "/withdraw"
+        case .updateFCMToken:
+            return "/update_fcm_token"
         }
     }
     
@@ -36,7 +39,7 @@ enum UserURI: URI {
             return .post
         case .login:
             return .get
-        case .updateUserSetting:
+        case .updateUserSetting, .updateFCMToken:
             return .put
         }
     }
@@ -63,6 +66,8 @@ enum UserURI: URI {
                 "gender": data.gender,
                 "study": data.study
             ]
+        case let .updateFCMToken(token):
+            return ["FCMtoken": token]
         }
     }
     
@@ -77,6 +82,7 @@ enum QueueURI: URI {
     case requestStudyTo(uid: String)
     case acceptStudyWith(uid: String)
     case cancelStudy(uid: String)
+    case writeReview(data: WriteReviewModel)
     
     var baseURI: String {
         return "/queue"
@@ -94,6 +100,8 @@ enum QueueURI: URI {
             return "/studyaccept"
         case .cancelStudy:
             return "/dodge"
+        case let .writeReview(data):
+            return "/rate/\(data.uid)"
         default:
             return ""
         }
@@ -103,7 +111,7 @@ enum QueueURI: URI {
         switch self {
         case .myQueueState:
             return .get
-        case .searchNearStudy, .requestMyStudy, .requestStudyTo, .acceptStudyWith, .cancelStudy:
+        case .searchNearStudy, .requestMyStudy, .requestStudyTo, .acceptStudyWith, .cancelStudy, .writeReview:
             return .post
         case .deleteMyStudy:
             return .delete
@@ -123,6 +131,10 @@ enum QueueURI: URI {
             return ["otheruid": uid]
         case let .cancelStudy(uid):
             return ["otheruid": uid]
+        case let .writeReview(data):
+            return ["otheruid": data.uid,
+                    "reputation": data.reputation,
+                    "comment":data.comment]
         default:
             return nil
         }
