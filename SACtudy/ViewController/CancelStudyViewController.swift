@@ -39,9 +39,9 @@ extension CancelStudyViewController {
             .bind(with: self) { vc, result in
                 switch result {
                 case .success:
-                    // 테스트 필요함.
-                    vc.dismiss(animated: true)
-                    vc.presentingViewController?.navigationController?.popToRootViewController(animated: true)
+                    vc.dismiss(animated: true) {
+                        UIApplication.topViewController()?.navigationController?.popToRootViewController(animated: true)
+                    }
                 case .networkError:
                     vc.view.makeToast(Constant.networkDisconnectMessage)
                 }
