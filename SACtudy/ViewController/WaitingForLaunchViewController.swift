@@ -12,34 +12,30 @@ import SnapKit
 import Toast
 
 class WaitingForLaunchViewController: BaseViewController {
-
     let splashLogo = UIImageView(image: Asset.Images.splashLogo.image)
     let splashText = UIImageView(image: Asset.Images.splashText.image)
-    
     let viewModel = LaunchViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configureSplash()
         binding()
-        
     }
     
     func binding() {
-        
         let input = LaunchViewModel.Input(viewDidAppear: self.rx.viewDidAppear)
-        
         let output = viewModel.transform(input, disposeBag: disposeBag)
         
         output.loginResult
             .withUnretained(self)
             .bind { vc, result in
-                
                 switch result {
                 case .success:
                     vc.sceneDelegate?.setRootViewController(vc: SeSACTabBarController())
                 case .unregistered:
-                    vc.sceneDelegate?.setRootViewController(vc: NicknameViewController())
+                    let next = NicknameViewController()
+                    let navi = BaseNavigationController(rootViewController: next)
+                    vc.sceneDelegate?.setRootViewController(vc: navi)
                 default:
                     break
                 }
@@ -47,19 +43,18 @@ class WaitingForLaunchViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         output.isAuthNeeded
-            .bind(with: self) { vc, _ in
-                vc.sceneDelegate?.setRootViewController(vc: AuthPhoneViewController()) }
+            .bind(with: self) { vc, state in
+                let next = state == .toOnboarding ? OnboardViewController() : AuthPhoneViewController()
+                let navi = BaseNavigationController(rootViewController: next)
+                vc.sceneDelegate?.setRootViewController(vc: navi) }
             .disposed(by: disposeBag)
         
         output.errorMessage
             .bind(with: self) { vc, text in vc.view.makeToast(text)}
             .disposed(by: disposeBag)
-        
-        
     }
     
     private func configureSplash() {
-        
         [splashLogo, splashText].forEach { view.addSubview($0) }
         
         splashLogo.contentMode = .scaleAspectFit

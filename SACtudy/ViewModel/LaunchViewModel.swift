@@ -10,20 +10,17 @@ import RxCocoa
 import RxSwift
 
 class LaunchViewModel: ViewModel {
-    
     struct Input {
         let viewDidAppear: ControlEvent<Bool>
-        
     }
     
     struct Output {
         let loginResult = PublishRelay<UserRepository.LoginResult>()
-        let isAuthNeeded = PublishRelay<Void>()
+        let isAuthNeeded = PublishRelay<Transition>()
         let errorMessage = PublishRelay<String>()
     }
     
     func transform(_ input: Input, disposeBag: DisposeBag) -> Output {
-        
         let output = Output()
         
         UserRepository.shared.loginResult
@@ -36,17 +33,22 @@ class LaunchViewModel: ViewModel {
             .disposed(by: disposeBag)
         
         input.viewDidAppear
-            .map { _ in Constant.idtoken.isEmpty }
-            .bind { (value: Bool) in
-                if value { output.isAuthNeeded.accept(()) }
+            .bind { _ in
+                if !Constant.wasOnboarded {
+                    Constant.wasOnboarded = true
+                    output.isAuthNeeded.accept(.toOnboarding)
+                }
+                else if Constant.idtoken.isEmpty { output.isAuthNeeded.accept(.toAuthScene) }
                 else { UserRepository.shared.tryLogin() }
             }
             .disposed(by: disposeBag)
         
-        
         return output
     }
-    
-    
-    
+}
+
+extension LaunchViewModel {
+    enum Transition {
+        case toOnboarding, toAuthScene
+    }
 }

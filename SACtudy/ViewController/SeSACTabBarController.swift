@@ -18,7 +18,6 @@ final class SeSACTabBarController: UITabBarController {
         
         let sesacCollection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
         let backgroundCollection = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
-        backgroundCollection.backgroundColor = .gray
         let shopView = ShopView(sesac: sesacCollection, backgrond: backgroundCollection)
         let shop = ShopViewController(rootView: shopView)
         shop.tabBarItem = UITabBarItem(title: "새싹샵", image: Asset.Images.shop.image, tag: 1)
@@ -30,16 +29,16 @@ final class SeSACTabBarController: UITabBarController {
         myInfo.tabBarItem = UITabBarItem(title: "내정보", image: Asset.Images.my.image, tag: 3)
         
         viewControllers = [home, shop, friends, myInfo].map {
-            let dummy = emptyImage(with: CGSize(width: 0.01, height: 0.01))
-            let appear = UINavigationBarAppearance()
-            appear.configureWithDefaultBackground()
-            appear.backgroundColor = Asset.Colors.white.color
-            appear.shadowColor = .black.withAlphaComponent(0.04)
-            appear.setBackIndicatorImage(dummy, transitionMaskImage: dummy)
-            let navi = UINavigationController(rootViewController: $0)
-            navi.navigationBar.tintColor = Asset.Colors.black.color
-            navi.navigationBar.scrollEdgeAppearance = appear
-            navi.navigationBar.standardAppearance = appear
+//            let dummy = emptyImage(with: CGSize(width: 0.01, height: 0.01))
+//            let appear = UINavigationBarAppearance()
+//            appear.configureWithDefaultBackground()
+//            appear.backgroundColor = Asset.Colors.white.color
+//            appear.shadowColor = .black.withAlphaComponent(0.04)
+//            appear.setBackIndicatorImage(dummy, transitionMaskImage: dummy)
+            let navi = BaseNavigationController(rootViewController: $0)
+//            navi.navigationBar.tintColor = Asset.Colors.black.color
+//            navi.navigationBar.scrollEdgeAppearance = appear
+//            navi.navigationBar.standardAppearance = appear
             return navi
         }
         

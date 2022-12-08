@@ -12,7 +12,6 @@ import RxSwift
 import Then
 
 class OnboardViewController: BaseViewController {
-    
     let startButton = RoundedButton(title: "시작하기", fontSet: .body3, colorSet: .fill, height: .h48)
     
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
@@ -32,7 +31,6 @@ class OnboardViewController: BaseViewController {
     }
     
     func binding() {
-        
         let items = [
             OnboardItem(title: "위치 기반으로 빠르게\n주위 친구를 확인", highlightString: "위치 기반", image: Asset.Images.onboardingImg1.image),
             OnboardItem(title: "스터디를 원하는 친구를\n찾을 수 있어요", highlightString: "스터디를 원하는 친구",image: Asset.Images.onboardingImg2.image),
@@ -40,7 +38,6 @@ class OnboardViewController: BaseViewController {
         ]
         
         let observable = Observable.just(items)
-        
         observable
             .bind(to: collectionView.rx.items(cellIdentifier: OnboardingCell.reuseIdentifier, cellType: OnboardingCell.self)) {
                 index, item, cell in
@@ -53,9 +50,7 @@ class OnboardViewController: BaseViewController {
                         make.top.equalTo(16)
                         make.centerX.equalToSuperview()
                     }
-                    
                 }
-                
             }.disposed(by: disposeBag)
         
         observable
@@ -64,54 +59,47 @@ class OnboardViewController: BaseViewController {
             .disposed(by: disposeBag)
         
         startButton.rx.tap
-            .bind { _ in
-                let vc = AuthPhoneViewController()
-                let navi = UINavigationController(rootViewController: vc)
+            .bind(with: self) { vc, _ in
+                let next = AuthPhoneViewController()
+                let navi = BaseNavigationController(rootViewController: next)
                 navi.modalPresentationStyle = .fullScreen
                 navi.modalTransitionStyle = .crossDissolve
-                self.present(navi, animated: true)
+                vc.transition(navi, isModal: true)
             }
             .disposed(by: disposeBag)
         
     }
     
     func configureSubviews() {
+        [startButton, collectionView, pageControl].forEach { view.addSubview($0) }
         
-        view.addSubview(startButton)
-        startButton.snp.makeConstraints { make in
-            make.leading.bottom.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
+        startButton.snp.makeConstraints {
+            $0.leading.bottom.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
         }
         
-        view.addSubview(collectionView)
-        collectionView.snp.makeConstraints { make in
-            make.horizontalEdges.equalToSuperview().inset(8)
-            make.height.equalTo(collectionView.snp.width).multipliedBy(1.35)
-            make.bottom.equalTo(startButton.snp.top).offset(-100)
+        collectionView.snp.makeConstraints {
+            $0.horizontalEdges.equalToSuperview().inset(8)
+            $0.height.equalTo(collectionView.snp.width).multipliedBy(1.35)
+            $0.bottom.equalTo(startButton.snp.top).offset(-100)
         }
         
-        view.addSubview(pageControl)
-        pageControl.snp.makeConstraints { make in
-            make.bottom.equalTo(startButton.snp.top).offset(-40)
-            make.centerX.equalTo(collectionView)
-            make.height.equalTo(8)
+        pageControl.snp.makeConstraints {
+            $0.bottom.equalTo(startButton.snp.top).offset(-40)
+            $0.centerX.equalTo(collectionView)
+            $0.height.equalTo(8)
         }
-        
     }
 
 }
 
 extension OnboardViewController {
-    
     struct OnboardItem {
-        
         let title: String
         let highlightString: String?
         let image: UIImage
-        
     }
     
     func createLayout() -> UICollectionViewLayout {
-        
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
         
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -128,11 +116,6 @@ extension OnboardViewController {
             
             self.pageControl.currentPage = page
         }
-        
         return UICollectionViewCompositionalLayout(section: section)
-        
     }
-    
-    
-    
 }
