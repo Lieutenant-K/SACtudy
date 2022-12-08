@@ -100,53 +100,42 @@ class UserRepository: NetworkManager {
     let updateResult = PublishRelay<UpdateResult>()
     let withdrawResult = PublishRelay<WithdrawResult>()
     
-    
     private let login = PublishRelay<String>()
     private let signUp = PublishRelay<PersonalInfomation>()
     private let update = BehaviorRelay<User.UserSetting?>(value: nil)
     private let withdraw = PublishRelay<Void>()
+    private let updateFCMToken = PublishRelay<String>()
     
     func fetchUserData() -> Observable<User?> {
-        
         Observable.just(userInfo)
-        
     }
     
     func tryLogin() {
-        
-//        if userInfo != nil {
-//            loginResult.accept(.success)
-//            return
-//        }
-        
         login.accept(Constant.idtoken)
-        
     }
     
     func trySignUp() {
-        
         if personalInfo.FCMtoken != nil && personalInfo.birth != nil && personalInfo.email != nil && personalInfo.gender != nil && personalInfo.nickname != nil && personalInfo.phoneNumber != nil {
             
             signUp.accept(personalInfo)
-            
         }
-        
     }
     
     func tryUpdate(setting: User.UserSetting) {
-        
         update.accept(setting)
-        
     }
     
     func requestWithdraw() {
-        
         withdraw.accept(())
-        
+    }
+    
+    private func checkNeedToUpdateFCMToken(fcmToken: String) {
+        if Constant.FCMtoken != fcmToken {
+            updateFCMToken.accept(Constant.FCMtoken)
+        }
     }
     
     private func cleanUserData() {
-        
         let userDefault = UserDefaults.standard
         
         userInfo = nil
@@ -155,7 +144,6 @@ class UserRepository: NetworkManager {
         userDefault.removeObject(forKey: "idtoken")
         userDefault.removeObject(forKey: "FCMtoken")
         userDefault.removeObject(forKey: "phoneNumber")
-        
     }
     
     private func binding() {
@@ -167,6 +155,9 @@ class UserRepository: NetworkManager {
             .subscribe(with: self) { (repo, result: APIResult<User>) in
                 switch result {
                 case let .success(user):
+                    if let user {
+                        repo.checkNeedToUpdateFCMToken(fcmToken: user.fcMtoken)
+                    }
                     repo.userInfo = user
                     repo.loginResult.accept(.success(user))
                 case .error(.tokenError):
@@ -247,8 +238,24 @@ class UserRepository: NetworkManager {
         }
         .disposed(by: disposeBag)
         
-        
-        
+        updateFCMToken
+            .withUnretained(self)
+            .flatMapLatest { repo, token in
+                repo.request(router: .user(.updateFCMToken(token: token)), type: Empty.self) }
+            .subscribe(with: self) { repo, result in
+                switch result {
+                case .success:
+                    print(" 😇😇😇😇😇😇 FCM 갱신 성공 😇😇😇😇😇😇 ")
+                    repo.login.accept(Constant.idtoken)
+                case .error(.tokenError):
+                    repo.updateFCMToken.accept(Constant.FCMtoken)
+                case .error(.network):
+                    repo.loginResult.accept(.networkError)
+                default:
+                    print(result)
+                }
+            }
+            .disposed(by: disposeBag)
     }
     
 }
