@@ -34,8 +34,9 @@ extension String {
     
     var toBirthDate: Date? {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone(identifier: "UTC")
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-        
         return formatter.date(from: self)
     }
     
