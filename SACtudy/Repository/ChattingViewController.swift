@@ -114,12 +114,25 @@ extension ChattingViewController {
             }
             .disposed(by: disposeBag)
         
+        rootView.topMenu.registerReviewButton.rx.tap
+            .withLatestFrom(output.isStduyEnded.asObservable())
+            .map { $0.uid }
+            .bind(with: self) { vc, uid in
+                let view = WriteReviewView(nickname: vc.nickname)
+                let model = WriteReviewViewModel(uid: uid)
+                let next = WriteReviewViewController(rootView: view, viewModel: model)
+                next.modalTransitionStyle = .crossDissolve
+                next.modalPresentationStyle = .overFullScreen
+                vc.transition(next, isModal: true)
+            }
+            .disposed(by: disposeBag)
+        
         backButton.rx.tap
             .bind(with: self) { vc, _ in
                 vc.navigationController?.popToRootViewController(animated: true)}
             .disposed(by: disposeBag)
         
-        Observable<Void>.merge(menuButton.rx.tap.asObservable(), rootView.topMenu.cancelStudyButton.rx.tap.asObservable())
+        Observable<Void>.merge(menuButton.rx.tap.asObservable(), rootView.topMenu.cancelStudyButton.rx.tap.asObservable(), rootView.topMenu.registerReviewButton.rx.tap.asObservable())
             .withUnretained(self)
             .map { vc, _ in vc.rootView.topMenu.isHidden }
             .bind(to: rootView.topMenu.rx.isRevealed)

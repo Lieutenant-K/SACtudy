@@ -96,7 +96,7 @@ enum APIResult<T: Decodable> {
     
 }
 
-enum SeSACTitle: Int {
+enum SeSACTitle: Int, CaseIterable {
     
     case goodManner = 0
     case correctAppointmnet
