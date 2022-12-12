@@ -15,6 +15,9 @@ enum UserURI: URI {
     case updateUserSetting(data: User.UserSetting)
     case withdraw
     case updateFCMToken(token: String)
+    case shopInfo
+    case updateShopItem(data: ProductApplyModel)
+    case purchaseItem(data: PurchaseItemModel)
     
     var baseURI: String {
         return "/user"
@@ -30,14 +33,20 @@ enum UserURI: URI {
             return "/withdraw"
         case .updateFCMToken:
             return "/update_fcm_token"
+        case .shopInfo:
+            return "/shop/myinfo"
+        case .updateShopItem:
+            return "/shop/item"
+        case .purchaseItem:
+            return "/shop/ios"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .signUp, .withdraw:
+        case .signUp, .withdraw, .updateShopItem, .purchaseItem:
             return .post
-        case .login:
+        case .login, .shopInfo:
             return .get
         case .updateUserSetting, .updateFCMToken:
             return .put
@@ -47,7 +56,7 @@ enum UserURI: URI {
     
     var parameters: Parameters? {
         switch self {
-        case .login, .withdraw:
+        case .login, .withdraw, .shopInfo:
             return nil
         case let .signUp(data):
             return [
@@ -68,6 +77,10 @@ enum UserURI: URI {
             ]
         case let .updateFCMToken(token):
             return ["FCMtoken": token]
+        case let .updateShopItem(data):
+            return ["sesac": data.sesac, "background": data.background]
+        case let .purchaseItem(data):
+            return ["receipt": data.receiptString ?? "", "product": data.productId]
         }
     }
     
