@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>주변의 새싹 스터디를 찾기 위해서 사용자의 위치 정보가 필요해요</string>
-	<key>NSLocationDefaultAccuracyReduced</key>
-	<false/>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>주변의 새싹 스터디를 찾기 위해서 사용자의 위치 정보가 필요해요</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -15,7 +9,7 @@
 			<string></string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app-1-355153590205-ios-5d4a8ca9947951ab9e04d4</string>
+				<string>com.googleusercontent.apps.355153590205-t1m9f834btg5s7ln16kfi4hopamc8r53</string>
 			</array>
 		</dict>
 	</array>
@@ -24,6 +18,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocationDefaultAccuracyReduced</key>
+	<false/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>NotoSansKR-Medium.otf</string>
@@ -48,5 +44,9 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
