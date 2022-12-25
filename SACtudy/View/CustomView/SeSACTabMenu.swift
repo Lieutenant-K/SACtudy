@@ -12,7 +12,6 @@ import RxSwift
 import RxCocoa
 
 final class SeSACTabMenu: UIView {
-    
     var currentIndex = 0
     var items: [TabMenuItem]
     fileprivate var buttons = [UIButton]()
@@ -20,11 +19,9 @@ final class SeSACTabMenu: UIView {
     private let disposeBag = DisposeBag()
 
     private func configureView() {
-        
         buttons = items.enumerated().map { (index, item) in
             let button = createButton(title: item.title)
             button.tag = index
-//            button.addTarget(self, action: #selector(switchView(_:)), for: .touchUpInside)
             return button
         }
         
@@ -55,13 +52,6 @@ final class SeSACTabMenu: UIView {
             .startWith(0)
             .bind(to: self.rx.currentMenu)
             .disposed(by: disposeBag)
-        
-
-        
-//        if let first = buttons.first {
-//            switchView(first)
-//        }
-        
     }
     
     private func createButton(title: String) -> UIButton {
