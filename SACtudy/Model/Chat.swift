@@ -9,7 +9,6 @@ import Foundation
 import RealmSwift
 
 class Chat: EmbeddedObject, Codable {
-    
     @Persisted var id: String
     @Persisted var content: String
     @Persisted var from: String
@@ -31,25 +30,5 @@ class Chat: EmbeddedObject, Codable {
         self.to = try container.decode(String.self, forKey: .to)
         self.createdAt = try container.decode(String.self, forKey: .createdAt).toBirthDate ?? Date()
         
-    }
-    
-}
-
-class ChatRoom: Object {
-    @Persisted(primaryKey: true) var id: String
-    @Persisted var chat: List<Chat>
-    
-    var chatList: [Chat] {
-        get { chat.map{$0} }
-        set {
-            chat.removeAll()
-            chat.append(objectsIn: newValue)
-        }
-    }
-    
-    convenience init(id: String, chat: [Chat]) {
-        self.init()
-        self.id = id
-        self.chatList = chat
     }
 }
