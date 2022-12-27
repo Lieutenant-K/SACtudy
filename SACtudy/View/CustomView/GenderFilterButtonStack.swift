@@ -11,18 +11,16 @@ import RxCocoa
 import RxSwift
 
 final class GenderFilterButtonStack: UIView {
-
     let manFilterButton = GenderFilterButton(title: "남자")
     let womanFilterButton = GenderFilterButton(title: "여자")
     let noFilterButton = GenderFilterButton(title: "전체")
     
     private func configureView() {
-        
-        noFilterButton.configureButton(text: "전체", font: .title3, color: .normal)
-        
         layer.cornerRadius = 8
         layer.shadowOffset = CGSize(width: 0, height: 0)
         layer.shadowOpacity = 0.3
+        
+        noFilterButton.configureButton(text: "전체", font: .title3, color: .normal)
         
         let stackView = UIStackView(arrangedSubviews: [noFilterButton, manFilterButton, womanFilterButton]).then {
             $0.axis = .vertical
@@ -31,10 +29,7 @@ final class GenderFilterButtonStack: UIView {
         }
         
         addSubview(stackView)
-        stackView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
-        
+        stackView.snp.makeConstraints { $0.edges.equalToSuperview() }
     }
     
     init() {
@@ -42,10 +37,10 @@ final class GenderFilterButtonStack: UIView {
         configureView()
     }
     
+    @available(*, unavailable)
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }
 
 extension Reactive where Base: GenderFilterButtonStack {
@@ -53,7 +48,7 @@ extension Reactive where Base: GenderFilterButtonStack {
         let man = base.manFilterButton.rx.tap.map {GenderFilter.man}
         let woman = base.womanFilterButton.rx.tap.map {GenderFilter.woman}
         let noFilter = base.noFilterButton.rx.tap.map {GenderFilter.noFilter}
-        return ControlEvent(events: Observable.merge([man, woman, noFilter]))
+        return ControlEvent(events: Observable.merge([man, woman, noFilter]).startWith(.noFilter))
     }
     
     var currentFilter: Binder<GenderFilter> {
