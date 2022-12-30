@@ -124,11 +124,9 @@ class HomeViewController: BaseViewController {
 }
 
 extension HomeViewController: MKMapViewDelegate {
-    
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
         let view = mapView.dequeueReusableAnnotationView(withIdentifier: rootView.mapView.annotationReuseIdentifier, for: annotation)
-//            let view = MKAnnotationView()
         
         if let annotation = annotation as? SeSACAnnotation {
             view.image = Asset.Images.sesacFace(number: annotation.sesacType)?.image
@@ -147,27 +145,9 @@ extension HomeViewController: MKMapViewDelegate {
             mapView.isUserInteractionEnabled = true
         }
     }
-    
-    /*
-    func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
-        
-        let coordinate1 = mapView.convert(CGPoint(x: 0, y: mapView.frame.height/2), toCoordinateFrom: mapView)
-        
-        let coordinate2 = mapView.convert(CGPoint(x: mapView.frame.width/2, y: 0), toCoordinateFrom: mapView)
-        
-        let center = CLLocation(latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude)
-        
-        print(center.distance(from: CLLocation(latitude: coordinate1.latitude, longitude: coordinate1.longitude)))
-        
-        print(center.distance(from: CLLocation(latitude: coordinate2.latitude, longitude: coordinate2.longitude)))
-        
-        
-    }
-    */
 }
 
 extension HomeViewController: CLLocationManagerDelegate {
-    
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         
         switch manager.authorizationStatus {
